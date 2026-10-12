@@ -1,0 +1,21 @@
+{
+  "extends": "../../packages/config/tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@zyvora/ui/*": ["../../packages/ui/src/*"],
+      "@zyvora/types/*": ["../../packages/types/src/*"],
+      "@zyvora/config/*": ["../../packages/config/*"]
+    },
+    "allowImportingTsExtensions": true,
+    "moduleResolution": "bundler"
+  },
+  "include": ["src"],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
+}

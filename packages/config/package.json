@@ -1,0 +1,16 @@
+{
+  "name": "@zyvora/config",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {},
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "tailwindcss": "^4.3.3",
+    "@eslint/js": "^9.20.0",
+    "typescript-eslint": "^8.24.0",
+    "eslint-plugin-prettier": "^5.2.3",
+    "prettier": "^3.5.0",
+    "prettier-plugin-tailwindcss": "^0.6.11"
+  }
+}

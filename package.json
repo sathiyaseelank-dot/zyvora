@@ -1,0 +1,33 @@
+{
+  "name": "zyvora",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ZYVORA — Premium Car/Bike Flag E-Commerce. Monorepo per E1.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @zyvora/web & npm run dev -w @zyvora/api",
+    "build": "npm run build -w @zyvora/api && npm run build -w @zyvora/web",
+    "typecheck": "npm run typecheck -w @zyvora/types && npm run typecheck -w @zyvora/ui && npm run typecheck -w @zyvora/api && npm run typecheck -w @zyvora/web",
+    "lint": "npm run lint -w @zyvora/ui && npm run lint -w @zyvora/api && npm run lint -w @zyvora/web",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css,scss}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css,scss}\"",
+    "migrate": "npm run migrate -w @zyvora/api",
+    "seed": "npm run seed -w @zyvora/api"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@eslint/js": "^9.20.0",
+    "eslint": "^9.20.0",
+    "globals": "^15.14.0",
+    "prettier": "^3.5.0",
+    "prettier-plugin-tailwindcss": "^0.6.11",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.24.0"
+  }
+}

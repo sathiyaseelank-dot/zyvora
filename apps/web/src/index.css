@@ -1,0 +1,59 @@
+@import 'tailwindcss';
+
+@theme {
+  /* ZYVORA brand colors */
+  --color-brand-black: #0a0a0a;
+  --color-brand-gold: #d4a843;
+  --color-brand-gold-light: #e8c56d;
+  --color-brand-cream: #fdf8f0;
+  --color-brand-cream-dark: #f5ebe0;
+
+  --color-accent-red: #c0392b;
+  --color-accent-red-light: #e74c3c;
+  --color-accent-yellow: #f39c12;
+  --color-accent-yellow-light: #f1c40f;
+
+  --color-surface: #fdf8f0;
+  --color-surface-elevated: #ffffff;
+
+  --color-text-primary: #0a0a0a;
+  --color-text-secondary: #4a4a4a;
+  --color-text-muted: #888888;
+  --color-text-inverse: #ffffff;
+
+  --color-border: #e8dcc8;
+  --color-border-focus: #d4a843;
+
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-heading: 'Playfair Display', Georgia, serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --shadow-brand: 0 4px 20px rgba(212, 168, 67, 0.15);
+  --shadow-brand-lg: 0 10px 40px rgba(212, 168, 67, 0.2);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-surface text-text-primary font-sans antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading font-medium text-text-primary;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

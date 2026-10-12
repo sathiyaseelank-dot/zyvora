@@ -1,0 +1,16 @@
+{
+  "extends": "@zyvora/config/tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "declaration": true,
+    "declarationMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@zyvora/types/*": ["../../packages/types/src/*"],
+      "@zyvora/config/*": ["../../packages/config/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

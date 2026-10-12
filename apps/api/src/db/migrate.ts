@@ -1,4 +1,5 @@
-import { Migrator, FileMigrationProvider } from 'kysely';
+// Kysely 0.29 moved the migration API to its own entrypoint.
+import { Migrator, FileMigrationProvider } from 'kysely/migration';
 import { db } from './client.js';
 import * as path from 'path';
 import * as fs from 'fs/promises';

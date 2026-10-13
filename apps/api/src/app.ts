@@ -25,11 +25,12 @@ import { catalogRouter } from './routes/catalog.js';
 export function createApp(): Express {
   const app = express();
 
-  // Trust the first proxy hop so req.ip and secure-cookie detection are
-  // correct once this runs behind a reverse proxy in production. Rate limiting
-  // keys on req.ip, so getting this wrong silently merges all clients into one
-  // bucket.
-  app.set('trust proxy', 1);
+  // Client IP trust. Defaults to false (socket address only) because trusting
+  // X-Forwarded-For when nothing actually overwrote it hands every rate limit
+  // an attacker-controlled key — rotate the header and the counter resets.
+  // Set TRUST_PROXY to the hop count ONLY when the edge proxy overwrites the
+  // header rather than passing the client's through.
+  app.set('trust proxy', env.TRUST_PROXY);
   app.disable('x-powered-by');
 
   app.use(

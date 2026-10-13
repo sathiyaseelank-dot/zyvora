@@ -96,6 +96,65 @@ describe('ZYV-29 rate limiting', () => {
   });
 });
 
+describe('ZYV-29 X-Forwarded-For spoofing', () => {
+  // Regression: the limiter keyed on req.ip. With `trust proxy` enabled that
+  // value comes from the client-supplied X-Forwarded-For header, so rotating
+  // it handed out a fresh bucket per request — measured RateLimit-Remaining:
+  // 299 after three spoofed requests, i.e. the limiter never engaged.
+  function spoofApp() {
+    const app = express();
+    // Worst case: trust proxy fully on, the header is believed.
+    app.set('trust proxy', true);
+    app.get(
+      '/x',
+      rateLimit({ name: 'spoof', limit: 3, windowMs: 60_000 }),
+      (_req, res) => res.json({ data: 'ok' }),
+    );
+    app.use(notFoundHandler());
+    app.use(errorHandler);
+    return app;
+  }
+
+  it('is not defeated by rotating X-Forwarded-For', async () => {
+    // Stores are module-level, so each test starts from a clean counter.
+    resetRateLimits();
+    const client = await startServer(spoofApp());
+    try {
+      for (const ip of ['1.1.1.1', '2.2.2.2', '3.3.3.3']) {
+        await getJson(client, '/x', { headers: { 'x-forwarded-for': ip } });
+      }
+
+      // Fourth request, yet another "address": must already be limited.
+      const res = await getJson(client, '/x', {
+        headers: { 'x-forwarded-for': '4.4.4.4' },
+      });
+      assert.equal(
+        res.status,
+        429,
+        'rotating X-Forwarded-For handed out a fresh bucket',
+      );
+      assert.equal(res.body.error.code, 'RATE_LIMITED');
+    } finally {
+      await client.close();
+    }
+  });
+
+  it('counts every request against the real socket address', async () => {
+    resetRateLimits();
+    const client = await startServer(spoofApp());
+    try {
+      const first = await getJson(client, '/x', {
+        headers: { 'x-forwarded-for': '9.9.9.9' },
+      });
+      assert.equal(first.status, 200);
+      // Remaining must reflect the shared socket bucket, not a per-header one.
+      assert.equal(first.headers.get('ratelimit-remaining'), '2');
+    } finally {
+      await client.close();
+    }
+  });
+});
+
 describe('MemoryStore windowing', () => {
   it('starts a fresh window once the previous one has elapsed', () => {
     const store = new MemoryStore();

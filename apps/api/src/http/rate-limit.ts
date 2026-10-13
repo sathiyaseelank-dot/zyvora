@@ -125,13 +125,26 @@ export function resetRateLimits(): void {
  *
  * Keyed on IP only. Authenticated callers are not exempted: a stolen session
  * is exactly the case where a per-account limit matters.
+ *
+ * TRUST DEPENDENCY — this limiter is only as trustworthy as `req.ip`. If the
+ * app is configured with `trust proxy` set, Express derives req.ip from the
+ * client-supplied X-Forwarded-For header, and an attacker rotates that header
+ * to get a fresh bucket per request. That completely defeats the limiter.
+ *
+ * The defence is `TRUST_PROXY=false` (the default) whenever the API is
+ * reachable directly, and setting it to the true hop count only when the edge
+ * proxy overwrites the header. See config/env.ts.
  */
 export function rateLimit(options: RateLimitOptions): RequestHandler {
   const store = storeFor(options.name);
 
   return (req: Request, res: Response, next: NextFunction) => {
     const now = Date.now();
-    const key = `${options.name}:${req.ip ?? 'unknown'}`;
+    // Fall back to the raw socket address rather than req.ip: with
+    // `trust proxy` enabled req.ip can be entirely client-controlled, while
+    // socket.remoteAddress is whatever the TCP connection actually came from.
+    const address = req.socket?.remoteAddress ?? 'unknown';
+    const key = `${options.name}:${address}`;
     const bucket = store.hit(key, now, options.windowMs);
 
     const remaining = Math.max(0, options.limit - bucket.count);

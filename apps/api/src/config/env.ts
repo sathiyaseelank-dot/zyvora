@@ -17,6 +17,18 @@ interface EnvConfig {
   COOKIE_SECRET: string;
   FRONTEND_URL: string;
   CORS_ORIGINS: string[];
+  /**
+   * How many reverse-proxy hops to trust when deriving the client IP.
+   *
+   * `false` (the default) means trust nothing: req.ip is the socket address.
+   * This is the safe setting when the API is reachable directly, because the
+   * client-supplied X-Forwarded-For header is then fully attacker-controlled.
+   *
+   * Set it to the number of proxy hops only when the edge proxy *overwrites*
+   * X-Forwarded-For. If it merely passes the client's header through, setting
+   * a non-zero value lets anyone spoof their IP and escape every rate limit.
+   */
+  TRUST_PROXY: boolean | number;
 }
 
 const DEFAULTS = {
@@ -80,6 +92,29 @@ function requireOneOf<T extends string>(
   return value as T;
 }
 
+/**
+ * Parse TRUST_PROXY as a hop count, or false when unset/unrecognised.
+ *
+ * Defaults to false rather than a number: trusting X-Forwarded-For on a
+ * request that never crossed a proxy is precisely what made rate limiting
+ * bypassable.
+ */
+function parseTrustProxy(): boolean | number {
+  const value = raw('TRUST_PROXY');
+  if (value === undefined) return false;
+
+  if (value === 'false' || value === 'no' || value === '0') return false;
+  if (value === 'true' || value === 'yes') return 1;
+
+  const hops = Number(value);
+  if (Number.isInteger(hops) && hops > 0) return hops;
+
+  errors.push(
+    `TRUST_PROXY must be false or a positive integer (received "${value}")`,
+  );
+  return false;
+}
+
 export const env: EnvConfig = {
   PORT: requireNumber('PORT', DEFAULTS.PORT),
   NODE_ENV: requireOneOf(
@@ -103,6 +138,7 @@ export const env: EnvConfig = {
     .split(',')
     .map((o) => o.trim())
     .filter(Boolean),
+  TRUST_PROXY: parseTrustProxy(),
 };
 
 // --- Boot-time validation -------------------------------------------------

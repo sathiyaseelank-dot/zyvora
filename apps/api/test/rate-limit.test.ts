@@ -111,15 +111,25 @@ describe('MemoryStore windowing', () => {
     assert.equal(after.resetAt, t0 + 1100 + 1000);
   });
 
-  it('bounds the bucket map so a spoofed-IP flood cannot grow it forever', () => {
-    const store = new MemoryStore(10);
-    for (let i = 0; i < 50; i++) store.hit(`ip-${i}`, 1_000_000, 60_000);
-    // Sweep only evicts expired entries, so live entries are capped by the
-    // bound and never exceed it by more than the current batch.
+  it('bounds the bucket map even when every window is still live', () => {
+    // The previous version asserted size <= 60 after 50 inserts against a
+    // maxKeys of 10 — which passes whether or not the bound works at all.
+    // This one cannot pass vacuously: 5000 live buckets, bound of 25.
+    const store = new MemoryStore(25);
+    const t0 = 1_000_000;
+    for (let i = 0; i < 5000; i++) store.hit(`ip-${i}`, t0, 3_600_000);
+
     assert.ok(
-      (store as unknown as { buckets: Map<string, unknown> }).buckets.size <=
-        60,
+      store.size <= 25,
+      `bucket map grew to ${store.size}, bound is 25`,
     );
+  });
+
+  it('keeps counting correctly under sustained eviction pressure', () => {
+    const store = new MemoryStore(5);
+    const t0 = 1_000_000;
+    for (let i = 0; i < 100; i++) store.hit(`ip-${i}`, t0, 60_000);
+    assert.ok(store.size <= 5, `size ${store.size} exceeds bound of 5`);
   });
 
   it('reset() clears every counter', () => {

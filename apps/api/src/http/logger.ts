@@ -54,22 +54,38 @@ export function isSensitiveKey(key: string): boolean {
  * Recurses through plain objects and arrays. Cycles are broken with a marker
  * rather than throwing — a logging helper must never take down the request it
  * is describing.
+ *
+ * Cycle detection tracks the CURRENT PATH, not everything ever visited. Using
+ * a monotonic "seen" set marks any object referenced twice — even by two
+ * unrelated branches — as [Circular]. That silently corrupted audit rows: an
+ * entry passing the same object as both `oldValues` and `newValues` recorded
+ * the second one as "[Circular]". Removing from the set on the way back up
+ * means only a genuine ancestor is reported as a cycle.
  */
-export function redact(value: unknown, seen = new WeakSet<object>()): unknown {
+export function redact(
+  value: unknown,
+  path: WeakSet<object> = new WeakSet(),
+): unknown {
   if (value === null || typeof value !== 'object') return value;
 
-  if (seen.has(value as object)) return '[Circular]';
-  seen.add(value as object);
+  if (path.has(value as object)) return '[Circular]';
+  path.add(value as object);
 
-  if (Array.isArray(value)) {
-    return value.map((item) => redact(item, seen));
-  }
+  try {
+    if (Array.isArray(value)) {
+      return value.map((item) => redact(item, path));
+    }
 
-  const out: Record<string, unknown> = {};
-  for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
-    out[key] = isSensitiveKey(key) ? REDACTED : redact(val, seen);
+    const out: Record<string, unknown> = {};
+    for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
+      out[key] = isSensitiveKey(key) ? REDACTED : redact(val, path);
+    }
+    return out;
+  } finally {
+    // Leaving the current path so a sibling reference is not mistaken for a
+    // cycle.
+    path.delete(value as object);
   }
-  return out;
 }
 
 function write(

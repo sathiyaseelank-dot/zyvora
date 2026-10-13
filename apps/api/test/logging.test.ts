@@ -76,6 +76,47 @@ describe('ZYV-31 log redaction', () => {
     assert.equal(out.self, '[Circular]');
   });
 
+  it('preserves a shared reference that is NOT a cycle', () => {
+    // Regression: cycle detection used a monotonic "seen" set, so any object
+    // referenced twice was reported as [Circular]. An audit entry passing the
+    // same object as oldValues and newValues recorded the second one as
+    // "[Circular]", destroying the audit record.
+    const product = { name: 'Premium Car Flag', price: 1999 };
+    const out = redact({ oldValues: product, newValues: product }) as {
+      oldValues: unknown;
+      newValues: unknown;
+    };
+
+    assert.deepEqual(out.oldValues, { name: 'Premium Car Flag', price: 1999 });
+    assert.deepEqual(
+      out.newValues,
+      { name: 'Premium Car Flag', price: 1999 },
+      'newValues was corrupted by false cycle detection',
+    );
+  });
+
+  it('preserves repeated siblings that are structurally equal', () => {
+    const out = redact({ a: { id: 1 }, b: { id: 1 } }) as Record<
+      string,
+      unknown
+    >;
+    assert.deepEqual(out.a, { id: 1 });
+    assert.deepEqual(out.b, { id: 1 });
+  });
+
+  it('still detects a genuine cycle nested inside a shared reference', () => {
+    const inner: Record<string, unknown> = { deep: true };
+    inner.loop = inner;
+    const out = redact({ first: inner, second: inner }) as Record<
+      string,
+      unknown
+    >;
+    assert.equal((out.first as Record<string, unknown>).deep, true);
+    assert.equal((out.first as Record<string, unknown>).loop, '[Circular]');
+    assert.equal((out.second as Record<string, unknown>).deep, true);
+    assert.equal((out.second as Record<string, unknown>).loop, '[Circular]');
+  });
+
   it('passes through primitives unchanged', () => {
     assert.equal(redact(42), 42);
     assert.equal(redact('text'), 'text');

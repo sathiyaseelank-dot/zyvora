@@ -50,9 +50,9 @@ export class MemoryStore implements Store {
 
     // Absent, or the previous window has elapsed — start a new window.
     if (!existing || now >= existing.resetAt) {
-      // Evict opportunistically rather than on a timer, so there is no
-      // background work to leak when the process is shutting down.
-      if (this.buckets.size >= this.maxKeys) this.sweep(now);
+      if (!existing && this.buckets.size >= this.maxKeys) {
+        this.makeRoom(now);
+      }
       const fresh: Bucket = { count: 1, resetAt: now + windowMs };
       this.buckets.set(key, fresh);
       return fresh;
@@ -62,10 +62,41 @@ export class MemoryStore implements Store {
     return existing;
   }
 
+  /**
+   * Free at least one slot.
+   *
+   * Sweeping expired buckets is not enough on its own: when every bucket is
+   * still inside its window, the sweep reclaims nothing and the map grows
+   * without bound — exactly what happens under a spoofed-IP flood, since each
+   * forged address gets its own live bucket. So when the sweep falls short,
+   * the oldest bucket is evicted to make room. That trades a little rate-limit
+   * accuracy for bounded memory, which is the right way round for a limiter
+   * whose job is to resist an attacker.
+   */
+  private makeRoom(now: number): void {
+    this.sweep(now);
+    if (this.buckets.size < this.maxKeys) return;
+
+    let oldestKey: string | undefined;
+    let oldestResetAt = Infinity;
+    for (const [key, bucket] of this.buckets) {
+      if (bucket.resetAt < oldestResetAt) {
+        oldestResetAt = bucket.resetAt;
+        oldestKey = key;
+      }
+    }
+    if (oldestKey !== undefined) this.buckets.delete(oldestKey);
+  }
+
   private sweep(now: number): void {
     for (const [key, bucket] of this.buckets) {
       if (now >= bucket.resetAt) this.buckets.delete(key);
     }
+  }
+
+  /** Current entry count. Exposed so the bound can be asserted in tests. */
+  get size(): number {
+    return this.buckets.size;
   }
 
   reset(): void {

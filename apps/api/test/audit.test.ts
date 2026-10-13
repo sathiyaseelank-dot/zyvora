@@ -105,15 +105,37 @@ async function purgeTestAuditRows(): Promise<void> {
     .execute();
 }
 
+/**
+ * The database tests are REQUIRED, not optional.
+ *
+ * An earlier version skipped them when PostgreSQL was unreachable and the
+ * suite still exited 0 with "0 fail" — so a machine reading the exit code saw
+ * a green run in which eight integration tests never executed. A skipped
+ * database test is a broken gate, so the skip is now a hard failure.
+ *
+ * Set ZYVORA_ALLOW_SKIP_DB=1 only in a deliberately DB-less environment.
+ */
+const ALLOW_SKIP = process.env.ZYVORA_ALLOW_SKIP_DB === '1';
+
 before(async () => {
   dbAvailable = await canReachDb();
-  if (!dbAvailable) {
+  if (dbAvailable) {
+    await createTestAdmin();
+    return;
+  }
+
+  if (ALLOW_SKIP) {
     console.warn(
-      '[audit] PostgreSQL unreachable — ZYV-31 integration tests will be SKIPPED, not passed',
+      '[audit] PostgreSQL unreachable — ZYVORA_ALLOW_SKIP_DB=1, integration tests SKIPPED',
     );
     return;
   }
-  await createTestAdmin();
+
+  throw new Error(
+    'PostgreSQL is unreachable, so the ZYV-31 audit integration tests cannot run. ' +
+      'Start it (pg_ctl -D ~/postgres/data -l ~/postgres/logfile start) or set ' +
+      'ZYVORA_ALLOW_SKIP_DB=1 to accept the gap deliberately.',
+  );
 });
 
 after(async () => {
@@ -178,6 +200,48 @@ describe('ZYV-31 audit hooks (live database)', () => {
       'the reference must be preserved, not discarded',
     );
     assert.equal(row.action, 'order.status_changed');
+  });
+
+  it('redacts secrets in OLD values too', async (t) => {
+    if (!dbAvailable) return t.skip('no database');
+
+    // The previous test only covered new_values. old_values is where a
+    // password HASH lands when an admin changes a password — the single most
+    // damaging thing this table could contain, and it was untested.
+    const res = await audit(fakeReq(), {
+      action: 'admin.password_changed',
+      entityType: 'user',
+      entityId: UUID_B,
+      oldValues: {
+        password_hash: '$argon2id$v=19$m=65536$abc',
+        email: 'u@x.com',
+      },
+      newValues: {
+        password_hash: '$argon2id$v=19$m=65536$xyz',
+        email: 'u@x.com',
+      },
+    });
+
+    assert.equal(res.ok, true, `audit failed: ${res.error}`);
+
+    const row = await db
+      .selectFrom('audit_logs')
+      .select(['old_values', 'new_values'])
+      .where('id', '=', res.id!)
+      .executeTakeFirstOrThrow();
+
+    assert.deepEqual(row.old_values, {
+      password_hash: '[REDACTED]',
+      email: 'u@x.com',
+    });
+    assert.deepEqual(row.new_values, {
+      password_hash: '[REDACTED]',
+      email: 'u@x.com',
+    });
+
+    const stored = JSON.stringify(row);
+    assert.ok(!stored.includes('$argon2id'), 'password hash reached the table');
+    assert.ok(!stored.includes('abc'), 'old hash fragment reached the table');
   });
 
   it('redacts secrets before they reach the database', async (t) => {

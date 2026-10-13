@@ -10,8 +10,12 @@ import helmet from 'helmet';
 
 import { env } from './config/env.js';
 import { errorHandler, notFoundHandler } from './http/error-handler.js';
+import { requireAuth } from './http/auth.js';
+import { requireAdmin } from './http/rbac.js';
 import { requestLogger } from './http/logger.js';
 import { limiters } from './http/rate-limit.js';
+import { auditAdmin } from './audit/audit-log.js';
+import { adminRouter } from './routes/admin.js';
 import { catalogRouter } from './routes/catalog.js';
 
 /**
@@ -68,6 +72,18 @@ export function createApp(): Express {
   // Public catalog API — unauthenticated by design (ZYV-36). Rate limited at
   // the group level; the stricter auth/checkout limiters attach in E6/E7.
   app.use('/api', limiters.api, catalogRouter);
+
+  // Administrative boundary. Authentication, role check and audit-on-write are
+  // applied once here so every admin route added in E10 is protected and
+  // recorded by default — see routes/admin.ts for why this is E3, not E10.
+  app.use(
+    '/api/admin',
+    limiters.api,
+    requireAuth(),
+    requireAdmin,
+    auditAdmin('admin'),
+    adminRouter,
+  );
 
   // Terminal 404, then the single error handler.
   app.use(notFoundHandler());

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { describe, it } from 'node:test';
+import { after, describe, it } from 'node:test';
 import express, {
   type Request,
   type Response,
@@ -20,6 +20,17 @@ import {
   requireRole,
 } from '../src/http/rbac.js';
 import { getJson, startServer } from './helpers.js';
+import { db } from '../src/db/client.js';
+
+/** True when PostgreSQL is reachable; guards the DB-backed session case. */
+async function dbReachable(): Promise<boolean> {
+  try {
+    await db.selectFrom('users').select('id').limit(1).execute();
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * ZYV-35 — Role-based authorization.
@@ -272,15 +283,51 @@ describe('ZYV-32 authentication middleware (JWT verification)', () => {
     }
   });
 
-  it('mints a token that survives the middleware shape check', async () => {
-    // The user row is re-read from the database on every request, so this
-    // asserts the token is at least well-formed and cryptographically valid
-    // — it must not be rejected as a signature failure.
-    const token = await mintToken({ sub: 'abc', role: 'customer' });
-    const [h, p, s] = token.split('.');
-    assert.ok(h && p && s, 'token is not three dot-separated segments');
-    const claims = JSON.parse(Buffer.from(p, 'base64url').toString());
-    assert.equal(claims.sub, 'abc');
-    assert.equal(claims.role, 'customer');
+  it('rejects a structurally valid token whose user is not in the database', async (t) => {
+    // Replaces a weaker version of this test that only inspected the token's
+    // own segments and never passed it through the middleware, so it could not
+    // fail for any reason involving the code under test. A real request with a
+    // correctly signed, unexpired, well-formed token must still be rejected when
+    // the user row does not exist — because the user is re-read per request.
+    if (!(await dbReachable())) return t.skip('no database');
+
+    const token = await mintToken({
+      sub: '00000000-0000-4000-8000-000000000000',
+      role: 'admin',
+    });
+
+    const client = await startServer(authApp());
+    try {
+      const res = await getJson(client, '/protected', {
+        headers: { cookie: `${SESSION_COOKIE}=${token}` },
+      });
+      assert.equal(
+        res.status,
+        401,
+        'a signed token for a non-existent user was accepted',
+      );
+    } finally {
+      await client.close();
+    }
   });
+
+  it('rejects a token whose role claim is not a known role', async () => {
+    // The role in the token body is not trusted for authorisation, but an
+    // unknown role must not fall through to any default either.
+    const token = await mintToken({ sub: 'abc', role: 'superuser' });
+
+    const client = await startServer(authApp());
+    try {
+      const res = await getJson(client, '/protected', {
+        headers: { cookie: `${SESSION_COOKIE}=${token}` },
+      });
+      assert.equal(res.status, 401);
+    } finally {
+      await client.close();
+    }
+  });
+});
+
+after(async () => {
+  await db.destroy();
 });

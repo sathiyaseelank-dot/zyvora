@@ -175,6 +175,9 @@ export function auditAdmin(
         return;
       }
 
+      // The result must not be discarded. audit() documents that a failed
+      // write means "this action was NOT recorded"; ignoring that return value
+      // made a silent audit loss indistinguishable from a successful audit.
       void audit(req, {
         action: `admin.${req.method.toLowerCase()}.${entityType}`,
         entityType,
@@ -183,6 +186,19 @@ export function auditAdmin(
           typeof req.valid?.body === 'object' && req.valid.body
             ? (req.valid.body as Record<string, unknown>)
             : null,
+      }).then((result) => {
+        if (!result.ok) {
+          // Escalate the log level: the operation succeeded but is no longer
+          // accountable, which is a security-relevant gap, not a transient
+          // nuisance. An E10 alert should key off this.
+          logger.error('administrative action was NOT audited', {
+            action: `admin.${req.method.toLowerCase()}.${entityType}`,
+            entityType,
+            entityId: req.params?.id,
+            path: req.path,
+            error: result.error,
+          });
+        }
       });
     });
     next();

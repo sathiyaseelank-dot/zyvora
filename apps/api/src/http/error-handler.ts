@@ -52,7 +52,22 @@ export function errorHandler(
         path: req.path,
         stack: err.stack,
       });
+
+      // A 5xx AppError message is still internal text — it can name tables,
+      // upstream hosts or queries. Mask it in production exactly like an
+      // unexpected fault, and drop `details` for the same reason. The `code`
+      // survives so a client can still branch.
+      res.status(err.status).json({
+        error: {
+          code: err.code,
+          message: 'An unexpected error occurred',
+        },
+      });
+      return;
     }
+
+    // 4xx is deliberately user-facing: validation messages and details are the
+    // contract the frontend renders.
     res.status(err.status).json(err.toBody());
     return;
   }

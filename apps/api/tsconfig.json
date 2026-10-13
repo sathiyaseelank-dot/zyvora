@@ -3,6 +3,11 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
+    // The shared base sets noEmit:true so `tsc --noEmit` is the default
+    // everywhere. This package is also a build target, so it must opt back in
+    // — without this, `npm run build -w @zyvora/api` succeeded while emitting
+    // zero files and `npm start` could not resolve dist/index.js.
+    "noEmit": false,
     "declaration": true,
     "declarationMap": true,
     "baseUrl": ".",

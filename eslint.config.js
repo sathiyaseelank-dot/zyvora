@@ -28,6 +28,14 @@ export default [
       '@typescript-eslint': (await import('typescript-eslint')).plugin,
     },
     rules: {
+      // Justified: the base JS rules are wrong for TypeScript and the
+      // TS-aware replacements cover the same ground with real type
+      // information. `no-unused-vars` (base) cannot see TS overloads or type
+      // parameters and flags interface method signatures; `no-undef` flags
+      // type-only identifiers such as `RequestInit`. This is the
+      // typescript-eslint recommended setup, not a blanket disable.
+      'no-unused-vars': 'off',
+      'no-undef': 'off',
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },

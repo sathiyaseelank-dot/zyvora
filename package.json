@@ -14,6 +14,8 @@
     "lint": "npm run lint -w @zyvora/ui && npm run lint -w @zyvora/api && npm run lint -w @zyvora/web",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css,scss}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css,scss}\"",
+    "test": "npm run test --workspaces --if-present",
+    "verify": "npm run typecheck && npm run lint && npm run format:check && npm run test",
     "migrate": "npm run migrate -w @zyvora/api",
     "seed": "npm run seed -w @zyvora/api"
   },

@@ -1,4 +1,4 @@
-import { Kysely, PostgresDialect } from 'kysely';
+import { Kysely, PostgresDialect, type Generated } from 'kysely';
 import pg from 'pg';
 import { env } from '../config/env.js';
 
@@ -43,33 +43,33 @@ export interface Database {
 
 // Table type definitions (for Kysely type safety)
 export interface UserTable {
-  id: string;
+  id: Generated<string>;
   email: string;
   password_hash: string;
   full_name: string | null;
   mobile: string | null;
   role_id: string;
-  created_at: Date;
-  updated_at: Date;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
 }
 
 export interface RoleTable {
-  id: string;
+  id: Generated<string>;
   name: string;
   description: string | null;
-  created_at: Date;
+  created_at: Generated<Date>;
 }
 
 export interface CategoryTable {
-  id: string;
+  id: Generated<string>;
   name: string;
   slug: string;
   description: string | null;
-  created_at: Date;
+  created_at: Generated<Date>;
 }
 
 export interface ProductTable {
-  id: string;
+  id: Generated<string>;
   name: string;
   description: string;
   category_id: string;
@@ -77,47 +77,47 @@ export interface ProductTable {
   image: string; // single image URL
   stock_quantity: number;
   is_active: boolean;
-  created_at: Date;
-  updated_at: Date;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
 }
 
 export interface ProductImageTable {
-  id: string;
+  id: Generated<string>;
   product_id: string;
   url: string;
   alt_text: string | null;
   display_order: number;
-  created_at: Date;
+  created_at: Generated<Date>;
 }
 
 export interface InventoryTable {
-  id: string;
+  id: Generated<string>;
   product_id: string;
   quantity: number;
   reserved_quantity: number;
-  created_at: Date;
-  updated_at: Date;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
 }
 
 export interface CartTable {
-  id: string;
+  id: Generated<string>;
   user_id: string | null;
   session_id: string | null;
-  created_at: Date;
-  updated_at: Date;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
 }
 
 export interface CartItemTable {
-  id: string;
+  id: Generated<string>;
   cart_id: string;
   product_id: string;
   quantity: number;
-  created_at: Date;
-  updated_at: Date;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
 }
 
 export interface AddressTable {
-  id: string;
+  id: Generated<string>;
   user_id: string | null;
   full_name: string;
   mobile: string;
@@ -131,12 +131,12 @@ export interface AddressTable {
   country: string;
   delivery_instructions: string | null;
   is_default: boolean;
-  created_at: Date;
-  updated_at: Date;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
 }
 
 export interface OrderTable {
-  id: string;
+  id: Generated<string>;
   user_id: string;
   checkout_session_id: string;
   subtotal: number;
@@ -145,22 +145,22 @@ export interface OrderTable {
   discount: number;
   total: number;
   status: string;
-  created_at: Date;
-  updated_at: Date;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
 }
 
 export interface OrderItemTable {
-  id: string;
+  id: Generated<string>;
   order_id: string;
   product_id: string;
   name: string; // snapshot
   unit_price: number; // snapshot (INR rupees)
   quantity: number;
-  created_at: Date;
+  created_at: Generated<Date>;
 }
 
 export interface PaymentTable {
-  id: string;
+  id: Generated<string>;
   order_id: string;
   razorpay_order_id: string | null;
   razorpay_payment_id: string | null;
@@ -168,43 +168,43 @@ export interface PaymentTable {
   currency: string;
   status: string;
   method: string | null;
-  created_at: Date;
-  updated_at: Date;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
 }
 
 export interface RefundTable {
-  id: string;
+  id: Generated<string>;
   payment_id: string;
   amount: number;
   reason: string;
   status: string;
-  created_at: Date;
+  created_at: Generated<Date>;
 }
 
 export interface ShipmentTable {
-  id: string;
+  id: Generated<string>;
   order_id: string;
   carrier: string | null;
   tracking_number: string | null;
   status: string;
   shipped_at: Date | null;
   delivered_at: Date | null;
-  created_at: Date;
+  created_at: Generated<Date>;
 }
 
 export interface ReviewTable {
-  id: string;
+  id: Generated<string>;
   product_id: string;
   user_id: string;
   rating: number;
   title: string | null;
   body: string | null;
   is_verified_purchase: boolean;
-  created_at: Date;
+  created_at: Generated<Date>;
 }
 
 export interface CouponTable {
-  id: string;
+  id: Generated<string>;
   code: string;
   discount_type: string;
   discount_value: number;
@@ -215,11 +215,11 @@ export interface CouponTable {
   starts_at: Date;
   expires_at: Date | null;
   is_active: boolean;
-  created_at: Date;
+  created_at: Generated<Date>;
 }
 
 export interface AuditLogTable {
-  id: string;
+  id: Generated<string>;
   user_id: string | null;
   action: string;
   entity_type: string;
@@ -228,5 +228,5 @@ export interface AuditLogTable {
   new_values: Record<string, unknown> | null;
   ip_address: string | null;
   user_agent: string | null;
-  created_at: Date;
+  created_at: Generated<Date>;
 }

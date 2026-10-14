@@ -5,7 +5,7 @@ import { db } from '../db/client.js';
 import { asyncHandler } from '../http/async-handler.js';
 import { AppError } from '../http/errors.js';
 import { validate, valid } from '../http/validate.js';
-import { logger } from '../http/logger.js';
+import { env } from '../config/env.js';
 import { requireAuth, type RoleName } from '../http/auth.js';
 import { audit } from '../audit/audit-log.js';
 import {
@@ -20,9 +20,9 @@ import {
   clearSessionCookies,
   issueCsrfCookie,
   issueSessionCookies,
-  signSession,
   verifyCsrf,
 } from '../auth/session.js';
+import { signSession } from '../auth/jwt.js';
 
 /**
  * Authentication endpoints — Epic E6.
@@ -41,6 +41,15 @@ import {
  * account" and "wrong credentials", so the endpoints cannot be used to discover
  * which emails are registered.
  */
+
+/**
+ * Reset tokens issued during this process, for development use only.
+ *
+ * Bounded and in-memory: this exists so a developer without a mailer can
+ * complete the flow locally, and it evaporates on restart. It is NOT a store
+ * — recovery goes through the emailed link once a mailer exists.
+ */
+const devResetTokens = new Map<string, { raw: string; expiresAt: number }>();
 
 export const authRouter: Router = Router();
 
@@ -406,18 +415,47 @@ authRouter.post(
         entityId: user.id,
       });
 
-      // No email provider is configured yet (E6-S7 / ZYV-83 is explicit that
-      // none is assumed). The token is logged at debug level so a developer can
-      // complete the flow locally. In production this line must be removed
-      // once a mailer is wired — it is the whole point of hashing the token,
-      // and logging it undoes that protection.
-      logger.debug('password reset token issued (no mailer configured)', {
-        userId: user.id,
-        token: raw,
+      // No email provider is configured yet (ZYV-83 is explicit that none is
+      // assumed). The token must NOT be logged: hashing it in the database is
+      // the entire point, and a debug log line would put the raw credential
+      // back in plaintext in whatever ships logs — so a stray
+      // LOG_LEVEL=debug would quietly undo the protection.
+      //
+      // It is instead recorded in-process only, and surfaced to the developer
+      // through an explicitly opted-in, development-only response field.
+      devResetTokens.set(user.id, {
+        raw,
+        expiresAt: RESET_TTL_MINUTES * 60_000,
       });
+
+      if (env.NODE_ENV === 'production' && env.DEV_EXPOSE_RESET_TOKEN) {
+        // Refusing loudly beats honouring a foot-gun in production.
+        throw new Error(
+          'DEV_EXPOSE_RESET_TOKEN must never be enabled in production: it ' +
+            'returns live password-reset tokens in an API response.',
+        );
+      }
     }
 
-    // Identical response either way, so this cannot enumerate accounts.
+    // Identical response either way, so this cannot enumerate accounts. The
+    // development token is attached only when explicitly opted in, and only
+    // for an address that actually has an account.
+    if (env.DEV_EXPOSE_RESET_TOKEN && user) {
+      const issued = devResetTokens.get(user.id);
+      if (issued) {
+        res.status(202).json({
+          data: {
+            message:
+              'If an account exists for that address, a password reset link has been sent.',
+            // DEVELOPMENT ONLY — present solely because DEV_EXPOSE_RESET_TOKEN
+            // is set, which is refused in production at boot.
+            devResetToken: issued.raw,
+          },
+        });
+        return;
+      }
+    }
+
     forgotAck(res);
   }),
 );

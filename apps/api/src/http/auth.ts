@@ -1,9 +1,8 @@
 import type { Request, RequestHandler } from 'express';
-import { jwtVerify, type JWTPayload } from 'jose';
 
-import { env } from '../config/env.js';
 import { db } from '../db/client.js';
 import { AppError } from './errors.js';
+import { SESSION_COOKIE, type RoleName, verifySession } from '../auth/jwt.js';
 
 /**
  * Authentication middleware — Story ZYV-32.
@@ -17,10 +16,10 @@ import { AppError } from './errors.js';
  * and is bypassable by anyone calling the API directly.
  */
 
-/** Name of the session cookie. Matches the E6 auth routes that will set it. */
-export const SESSION_COOKIE = 'zyvora_session';
-
-export type RoleName = 'customer' | 'admin';
+// Re-exported so existing importers keep working; the definitions live in
+// auth/jwt.ts so there is exactly one implementation of token handling.
+export { SESSION_COOKIE };
+export type { RoleName };
 
 export interface AuthenticatedUser {
   id: string;
@@ -34,13 +33,6 @@ declare module 'express-serve-static-core' {
   interface Request {
     user?: AuthenticatedUser;
   }
-}
-
-/** Lazily built so importing this module does not throw on a bad secret. */
-let cachedKey: Uint8Array | null = null;
-function secretKey(): Uint8Array {
-  cachedKey ??= new TextEncoder().encode(env.JWT_SECRET);
-  return cachedKey;
 }
 
 /**
@@ -70,10 +62,6 @@ function readSessionToken(req: Request): string | undefined {
   return undefined;
 }
 
-function isRoleName(value: unknown): value is RoleName {
-  return value === 'customer' || value === 'admin';
-}
-
 /**
  * Verify the JWT and load the user.
  *
@@ -87,21 +75,12 @@ export async function resolveUser(
   const token = readSessionToken(req);
   if (!token) return undefined;
 
-  let payload: JWTPayload;
-  try {
-    ({ payload } = await jwtVerify(token, secretKey(), {
-      // Pin the algorithm. Without this, an attacker can present an unsigned
-      // or differently-signed token and have it accepted.
-      algorithms: ['HS256'],
-    }));
-  } catch {
-    // Expired, tampered, or malformed — all indistinguishable to the caller
-    // and all mean "no session".
-    return undefined;
-  }
+  // Verification, algorithm pinning and the role allow-list all live in
+  // auth/jwt.ts. This function used to carry a second copy of all of it.
+  const claims = await verifySession(token);
+  if (!claims) return undefined;
 
-  if (typeof payload.sub !== 'string') return undefined;
-  if (!isRoleName(payload.role)) return undefined;
+  const payload = { sub: claims.sub, iat: claims.issuedAt };
 
   const row = await db
     .selectFrom('users')
@@ -117,7 +96,8 @@ export async function resolveUser(
     .where('users.id', '=', payload.sub)
     .executeTakeFirst();
 
-  if (!row || !isRoleName(row.role)) return undefined;
+  if (!row || (row.role !== 'customer' && row.role !== 'admin'))
+    return undefined;
 
   // Session revocation. The JWT is stateless, so a password change would
   // otherwise leave every already-issued cookie valid for its full lifetime.
@@ -134,7 +114,7 @@ export async function resolveUser(
     email: row.email,
     fullName: row.full_name,
     mobile: row.mobile,
-    role: row.role,
+    role: row.role as RoleName,
   };
 }
 

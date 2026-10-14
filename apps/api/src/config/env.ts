@@ -29,6 +29,12 @@ interface EnvConfig {
    * a non-zero value lets anyone spoof their IP and escape every rate limit.
    */
   TRUST_PROXY: boolean | number;
+  /**
+   * Development-only: return live password-reset tokens in the forgot-password
+   * response, because no mailer exists yet (ZYV-83). Hard-refuses in
+   * production. Never enable this on a real environment.
+   */
+  DEV_EXPOSE_RESET_TOKEN: boolean;
 }
 
 const DEFAULTS = {
@@ -115,6 +121,17 @@ function parseTrustProxy(): boolean | number {
   return false;
 }
 
+/** Parse a boolean-ish environment variable. Defaults to false. */
+function parseBoolean(key: string): boolean {
+  const value = raw(key);
+  if (value === undefined) return false;
+  const v = value.toLowerCase();
+  if (['1', 'true', 'yes', 'on'].includes(v)) return true;
+  if (['0', 'false', 'no', 'off'].includes(v)) return false;
+  errors.push(`${key} must be a boolean (received "${value}")`);
+  return false;
+}
+
 export const env: EnvConfig = {
   PORT: requireNumber('PORT', DEFAULTS.PORT),
   NODE_ENV: requireOneOf(
@@ -139,6 +156,7 @@ export const env: EnvConfig = {
     .map((o) => o.trim())
     .filter(Boolean),
   TRUST_PROXY: parseTrustProxy(),
+  DEV_EXPOSE_RESET_TOKEN: parseBoolean('DEV_EXPOSE_RESET_TOKEN'),
 };
 
 // --- Boot-time validation -------------------------------------------------
@@ -173,6 +191,15 @@ if (env.NODE_ENV === 'production') {
       errors.push(`${key} must be at least 32 characters in production`);
     }
   }
+}
+
+// A production boot with the dev token switch on is a misconfiguration that
+// hands account takeover to anyone who can call the API. Refuse outright
+// instead of waiting for the first forgot-password request to blow up.
+if (env.NODE_ENV === 'production' && env.DEV_EXPOSE_RESET_TOKEN) {
+  errors.push(
+    'DEV_EXPOSE_RESET_TOKEN must not be enabled in production: it returns live password-reset tokens',
+  );
 }
 
 if (errors.length > 0) {

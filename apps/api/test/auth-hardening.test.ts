@@ -8,7 +8,7 @@ import { db } from '../src/db/client.js';
 import { env } from '../src/config/env.js';
 import { resetRateLimits } from '../src/http/rate-limit.js';
 import { CSRF_COOKIE, CSRF_HEADER } from '../src/auth/session.js';
-import { signSession, verifySession } from '../src/auth/session.js';
+import { signSession, verifySession } from '../src/auth/jwt.js';
 import { hashPassword } from '../src/auth/password.js';
 import {
   startServer,

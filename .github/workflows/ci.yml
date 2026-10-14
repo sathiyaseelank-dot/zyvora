@@ -22,7 +22,10 @@ permissions:
 jobs:
   verify:
     name: typecheck · lint · format · test · build
-    runs-on: ubuntu-latest
+    # Pinned rather than `ubuntu-latest`: the label migrates to Ubuntu 26 on
+    # 2026-10-19, which would change the runner image under the gate without
+    # any change to this repository.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
 
     # The database-backed tests are required, not optional. audit.test.ts and
@@ -56,10 +59,11 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v5+, not v4: v4 targets the deprecated Node 20 action runtime.
+        uses: actions/checkout@v5
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '20'
           cache: npm

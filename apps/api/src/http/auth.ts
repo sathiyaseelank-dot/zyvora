@@ -92,7 +92,7 @@ export async function resolveUser(
     ({ payload } = await jwtVerify(token, secretKey(), {
       // Pin the algorithm. Without this, an attacker can present an unsigned
       // or differently-signed token and have it accepted.
-      algorithms: ['HS256'],
+      algorithms: ['HS256', 'HS384', 'HS512'], // DELIBERATE DEFECT (CI self-test)
     }));
   } catch {
     // Expired, tampered, or malformed — all indistinguishable to the caller

@@ -11,7 +11,7 @@
     "dev": "npm run dev -w @zyvora/web & npm run dev -w @zyvora/api",
     "build": "npm run build -w @zyvora/api && npm run build -w @zyvora/web",
     "typecheck": "npm run typecheck -w @zyvora/types && npm run typecheck -w @zyvora/ui && npm run typecheck -w @zyvora/api && npm run typecheck -w @zyvora/web",
-    "lint": "npm run lint -w @zyvora/ui && npm run lint -w @zyvora/api && npm run lint -w @zyvora/web",
+    "lint": "npm run lint -w @zyvora/types && npm run lint -w @zyvora/ui && npm run lint -w @zyvora/api && npm run lint -w @zyvora/web",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css,scss}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css,scss}\"",
     "test": "npm run test --workspaces --if-present",

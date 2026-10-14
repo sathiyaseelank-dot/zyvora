@@ -5,6 +5,7 @@ import { SignJWT } from 'jose';
 import { createApp } from '../src/app.js';
 import { db } from '../src/db/client.js';
 import { SESSION_COOKIE } from '../src/http/auth.js';
+import { env } from '../src/config/env.js';
 import { startServer, getJson, type TestClient } from './helpers.js';
 
 /**
@@ -21,7 +22,12 @@ import { startServer, getJson, type TestClient } from './helpers.js';
  * fail if the production wiring changes.
  */
 
-const JWT_SECRET = 'dev-secret-change-in-production-min-32-chars';
+/**
+ * Taken from the real config, not hardcoded. CI overrides JWT_SECRET, and a
+ * test that hardcoded the development default would mint tokens the running
+ * app rejects — passing locally, failing in CI, for no real reason.
+ */
+const JWT_SECRET = env.JWT_SECRET;
 const ADMIN_ID = 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa';
 const CUSTOMER_ID = 'bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb';
 

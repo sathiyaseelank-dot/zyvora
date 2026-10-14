@@ -1,0 +1,128 @@
+name: CI
+
+# The four gates run locally today and would regress silently without this.
+# Every gate is reproduced exactly as `npm run verify` runs them, plus the
+# build, so a green run here means the same thing a green terminal does.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Cancel superseded runs on the same ref instead of queueing them.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least privilege: the workflow only needs to read the repo.
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: typecheck · lint · format · test · build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # The database-backed tests are required, not optional. audit.test.ts and
+    # app-wiring.test.ts throw when PostgreSQL is unreachable rather than
+    # skipping, because a skipped database test is a broken gate — so this
+    # service container is mandatory, not a convenience.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: zyvora
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # Matches the application default, stated explicitly so CI cannot drift
+      # from it silently.
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/zyvora
+      NODE_ENV: test
+      # Non-default so a test that accidentally depends on a dev secret fails
+      # here rather than passing locally.
+      JWT_SECRET: ci-secret-not-used-for-production-min-32-chars
+      COOKIE_SECRET: ci-cookie-secret-not-used-in-production-32-chars
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      # `npm ci`, not `npm install`: it installs exactly the lockfile and fails
+      # if package.json and the lockfile disagree.
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify PostgreSQL is reachable
+        run: |
+          for i in $(seq 1 30); do
+            if node -e "
+              const {Client}=require('pg');
+              const c=new Client({connectionString:process.env.DATABASE_URL});
+              c.connect().then(()=>c.query('select 1')).then(()=>c.end())
+               .then(()=>process.exit(0)).catch(()=>process.exit(1));
+            " 2>/dev/null; then
+              echo "postgres ready after ${i}s"; exit 0
+            fi
+            sleep 1
+          done
+          echo "postgres never became reachable"; exit 1
+
+      - name: Apply migrations
+        run: npm run migrate
+
+      - name: Seed
+        run: npm run seed
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Test
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+      # A build that emits nothing is green, so assert the artifact exists.
+      # This is the exact defect that made `npm run build` pass while dist/
+      # stayed empty.
+      - name: Assert build produced an API artifact
+        run: |
+          test -f apps/api/dist/index.js \
+            || { echo "apps/api/dist/index.js missing — build emitted nothing"; exit 1; }
+          echo "api artifact present"
+
+      - name: Dependency audit
+        run: npm audit --audit-level=high
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### CI"
+            echo ""
+            echo "- commit: \`${GITHUB_SHA:0:7}\`"
+            echo "- result: ${{ job.status }}"
+          } >> "$GITHUB_STEP_SUMMARY"

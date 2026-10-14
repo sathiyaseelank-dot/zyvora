@@ -11,6 +11,8 @@ import { audit } from '../audit/audit-log.js';
 import {
   generateResetToken,
   hashPassword,
+  parseResetTokenId,
+  resetTokenSecret,
   validatePassword,
   verifyPassword,
 } from '../auth/password.js';
@@ -96,6 +98,18 @@ const resetSchema = z.object({
   password: z.string(),
   confirmPassword: z.string(),
 });
+
+/**
+ * Postgres unique-violation SQLSTATE.
+ */
+function isUniqueViolation(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'code' in err &&
+    (err as { code?: unknown }).code === '23505'
+  );
+}
 
 /**
  * The single response used for every credential failure.
@@ -185,17 +199,33 @@ authRouter.post(
       );
     }
 
-    const user = await db
-      .insertInto('users')
-      .values({
-        email: body.email,
-        password_hash: passwordHash,
-        full_name: body.fullName,
-        mobile: body.mobile,
-        role_id: role.id,
-      })
-      .returning(['id', 'email', 'full_name', 'mobile'])
-      .executeTakeFirstOrThrow();
+    // The pre-flight `clash` check above is a TOCTOU window: two simultaneous
+    // registrations can both pass it and then collide on the unique index.
+    // The database is the real arbiter, so its rejection is caught here and
+    // reported as the same 409 the pre-flight check would have produced —
+    // rather than surfacing as an unhandled 500.
+    let user;
+    try {
+      user = await db
+        .insertInto('users')
+        .values({
+          email: body.email,
+          password_hash: passwordHash,
+          full_name: body.fullName,
+          mobile: body.mobile,
+          role_id: role.id,
+        })
+        .returning(['id', 'email', 'full_name', 'mobile'])
+        .executeTakeFirstOrThrow();
+    } catch (err) {
+      if (isUniqueViolation(err)) {
+        throw new AppError(
+          'CONFLICT',
+          'An account already exists with that email address or mobile number',
+        );
+      }
+      throw err;
+    }
 
     // Self-registration can only ever create a customer. An admin is
     // provisioned, never self-assigned.
@@ -347,9 +377,11 @@ authRouter.post(
       .executeTakeFirst();
 
     if (user) {
-      const raw = generateResetToken();
-      // Only the hash is persisted; the raw token exists solely to be emailed.
-      const tokenHash = await hashPassword(raw);
+      const { raw, id, secret } = generateResetToken();
+      // Only the secret's hash is persisted; the raw token exists solely to be
+      // emailed. The id is the row's primary key, which makes redemption a
+      // single indexed lookup rather than a scan of every outstanding token.
+      const tokenHash = await hashPassword(secret);
 
       // Invalidate any outstanding token so only the newest link works.
       await db
@@ -360,6 +392,7 @@ authRouter.post(
       await db
         .insertInto('password_reset_tokens')
         .values({
+          id,
           user_id: user.id,
           token_hash: tokenHash,
           expires_at: new Date(Date.now() + RESET_TTL_MINUTES * 60_000),
@@ -405,29 +438,49 @@ authRouter.post(
     const problem = validatePassword(password);
     if (problem) throw new AppError('VALIDATION_ERROR', problem);
 
-    const candidates = await db
-      .selectFrom('password_reset_tokens')
-      .select(['id', 'user_id', 'token_hash', 'expires_at', 'used_at'])
-      .where('used_at', 'is', null)
-      .execute();
+    // The token carries its own row id, so this is one indexed lookup. Scanning
+    // every unexpired token with Argon2 instead made each request cost O(rows):
+    // 40ms empty, 1444ms at 30 rows, and unbounded as the user base grows.
+    const tokenId = parseResetTokenId(token);
 
-    // Each candidate is verified with Argon2, so an unknown token costs the
-    // same as a known-but-invalid one.
-    let match: { id: string; user_id: string } | undefined;
-    for (const c of candidates) {
-      if (c.expires_at.getTime() < Date.now()) continue;
-      if (await verifyPassword(c.token_hash, token)) {
-        match = { id: c.id, user_id: c.user_id };
-        break;
-      }
-    }
+    // Exactly one Argon2 verification happens on every path, whatever the
+    // token looks like. An earlier version short-circuited on `!candidate`, so
+    // a well-formed token whose id was absent skipped Argon2 entirely while a
+    // malformed one did not — leaving the two distinguishable, and leaving the
+    // "cost one verification" guarantee hollow. `verifyPassword(null, …)` runs
+    // the dummy verification, which is how the cost stays uniform.
+    const secret = resetTokenSecret(token);
 
-    if (!match) {
+    if (!tokenId) {
+      await verifyPassword(null, secret);
       throw new AppError(
         'BAD_REQUEST',
         'This reset link is invalid or has expired',
       );
     }
+
+    const candidate = await db
+      .selectFrom('password_reset_tokens')
+      .select(['id', 'user_id', 'token_hash', 'expires_at', 'used_at'])
+      .where('id', '=', tokenId)
+      .where('used_at', 'is', null)
+      .executeTakeFirst();
+
+    const hashToCheck = candidate?.token_hash ?? null;
+    const secretMatches = await verifyPassword(hashToCheck, secret);
+
+    if (
+      !candidate ||
+      candidate.expires_at.getTime() < Date.now() ||
+      !secretMatches
+    ) {
+      throw new AppError(
+        'BAD_REQUEST',
+        'This reset link is invalid or has expired',
+      );
+    }
+
+    const match = { id: candidate.id, user_id: candidate.user_id };
 
     const newHash = await hashPassword(password);
 
@@ -446,9 +499,18 @@ authRouter.post(
       );
     }
 
+    const changedAt = new Date();
+
     await db
       .updateTable('users')
-      .set({ password_hash: newHash, updated_at: new Date() })
+      .set({
+        password_hash: newHash,
+        updated_at: changedAt,
+        // Kill every session issued before now. A password change is the
+        // standard response to a suspected compromise, and leaving old
+        // cookies alive would make it pointless.
+        session_invalid_before: changedAt,
+      })
       .where('id', '=', match.user_id)
       .execute();
 

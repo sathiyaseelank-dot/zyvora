@@ -50,6 +50,11 @@ export interface UserTable {
   full_name: string | null;
   mobile: string | null;
   role_id: string;
+  /**
+   * Sessions issued before this instant are rejected. Set on a password reset
+   * so a stolen cookie stops working (migration 004).
+   */
+  session_invalid_before: Date | null;
   created_at: Generated<Date>;
   updated_at: Generated<Date>;
 }

@@ -1,5 +1,5 @@
 import * as argon2 from 'argon2';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 
 /**
  * Password hashing — Story ZYV-57 / E6-S6.
@@ -155,12 +155,50 @@ export async function dummyVerify(password: string): Promise<void> {
   }
 }
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
- * Generate a URL-safe random token for a password reset.
+ * A password-reset token: a lookup id plus a secret.
  *
- * 32 bytes of CSPRNG output. The raw token is returned to the caller to email;
- * only its hash is persisted.
+ * The previous design compared the submitted token against every unexpired row
+ * in the table using Argon2, to avoid a timing oracle. That is O(tokens): one
+ * bogus request cost 40ms with an empty table but 1444ms with 30 rows, and the
+ * table is global, so a thousand users each holding one token turns a single
+ * bogus request into a ~40 second stall — a denial of service anyone can trigger
+ * for free.
+ *
+ * Splitting the token into `id.secret` makes the row addressable in one indexed
+ * lookup, so cost is O(1) regardless of table size. The secret is still stored
+ * only as an Argon2id hash, so a database leak yields no usable token, and the
+ * verification work no longer depends on how many rows exist — so the timing
+ * defence survives.
  */
-export function generateResetToken(): string {
-  return randomBytes(32).toString('base64url');
+export interface ResetToken {
+  /** The value emailed to the user: `${id}.${secret}`. */
+  raw: string;
+  /** Primary key of the row to fetch. */
+  id: string;
+  /** The secret half, which is what gets hashed and stored. */
+  secret: string;
+}
+
+export function generateResetToken(): ResetToken {
+  const id = randomUUID();
+  const secret = randomBytes(32).toString('base64url');
+  return { raw: `${id}.${secret}`, id, secret };
+}
+
+/** Extract the lookup id from a submitted token, or undefined if malformed. */
+export function parseResetTokenId(token: string): string | undefined {
+  const dot = token.indexOf('.');
+  if (dot <= 0) return undefined;
+  const id = token.slice(0, dot);
+  return UUID_RE.test(id) ? id : undefined;
+}
+
+/** The secret half of a submitted token. */
+export function resetTokenSecret(token: string): string {
+  const dot = token.indexOf('.');
+  return dot === -1 ? token : token.slice(dot + 1);
 }

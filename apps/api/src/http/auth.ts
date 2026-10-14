@@ -111,12 +111,23 @@ export async function resolveUser(
       'users.email',
       'users.full_name',
       'users.mobile',
+      'users.session_invalid_before',
       'roles.name as role',
     ])
     .where('users.id', '=', payload.sub)
     .executeTakeFirst();
 
   if (!row || !isRoleName(row.role)) return undefined;
+
+  // Session revocation. The JWT is stateless, so a password change would
+  // otherwise leave every already-issued cookie valid for its full lifetime.
+  // Tokens carry `iat`; anything issued at or before the revocation instant is
+  // dead.
+  if (row.session_invalid_before) {
+    const revokedAt = row.session_invalid_before.getTime() / 1000;
+    const issuedAt = typeof payload.iat === 'number' ? payload.iat : 0;
+    if (issuedAt <= revokedAt) return undefined;
+  }
 
   return {
     id: row.id,

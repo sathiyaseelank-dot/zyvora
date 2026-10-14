@@ -14,6 +14,7 @@ import { requireAuth } from './http/auth.js';
 import { requireAdmin } from './http/rbac.js';
 import { requestLogger } from './http/logger.js';
 import { limiters } from './http/rate-limit.js';
+import { authRouter } from './routes/auth.js';
 import { auditAdmin } from './audit/audit-log.js';
 import { adminRouter } from './routes/admin.js';
 import { catalogRouter } from './routes/catalog.js';
@@ -72,6 +73,17 @@ export function createApp(): Express {
   // Public catalog API — unauthenticated by design (ZYV-36). Rate limited at
   // the group level; the stricter auth/checkout limiters attach in E6/E7.
   app.use('/api', limiters.api, catalogRouter);
+
+  // Password reset redemption is token brute-force, not credential stuffing,
+  // so it gets its own tighter bucket. This MUST be registered before the
+  // authRouter mount below — Express matches in order, so a limiter placed
+  // after the router can never run for a path the router already handled.
+  app.use('/api/auth/reset-password', limiters.reset);
+
+  // Authentication (E6). The stricter auth limiter applies here rather than
+  // the general api limiter: login and registration are the endpoints worth
+  // attacking, and they deserve a far tighter budget than catalog reads.
+  app.use('/api/auth', limiters.auth, authRouter);
 
   // Administrative boundary. Authentication, role check and audit-on-write are
   // applied once here so every admin route added in E10 is protected and

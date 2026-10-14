@@ -27,6 +27,7 @@ export interface Database {
   carts: CartTable;
   cart_items: CartItemTable;
   addresses: AddressTable;
+  password_reset_tokens: PasswordResetTokenTable;
 
   // Order & Payment tables
   orders: OrderTable;
@@ -133,6 +134,17 @@ export interface AddressTable {
   is_default: boolean;
   created_at: Generated<Date>;
   updated_at: Generated<Date>;
+}
+
+export interface PasswordResetTokenTable {
+  id: Generated<string>;
+  user_id: string;
+  /** Argon2id hash of the token — the raw token is never stored. */
+  token_hash: string;
+  expires_at: Date;
+  used_at: Date | null;
+  ip_address: string | null;
+  created_at: Generated<Date>;
 }
 
 export interface OrderTable {

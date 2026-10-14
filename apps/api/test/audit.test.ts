@@ -355,11 +355,6 @@ describe('ZYV-31 auditAdmin middleware end to end', () => {
   it('emits an audit row for a successful admin mutation', async (t) => {
     if (!dbAvailable) return t.skip('no database');
 
-    const before_ = await db
-      .selectFrom('audit_logs')
-      .select('id')
-      .executeTakeFirstOrThrow();
-
     const res = await getJson(client, '/api/admin/products/' + UUID_A, {
       method: 'PATCH',
       headers: {
@@ -373,10 +368,13 @@ describe('ZYV-31 auditAdmin middleware end to end', () => {
 
     await settle();
 
+    // Scoped to this suite's own user agent. Reading "the newest row overall"
+    // races every other spec that audits anything — node:test runs files
+    // concurrently, so an unrelated auth row can land first.
     const row = await db
       .selectFrom('audit_logs')
       .selectAll()
-      .where('id', '!=', before_.id)
+      .where('user_agent', '=', AUDIT_TEST_UA)
       .orderBy('created_at', 'desc')
       .executeTakeFirst();
 
@@ -393,8 +391,15 @@ describe('ZYV-31 auditAdmin middleware end to end', () => {
   it('does NOT emit an audit row for a rejected mutation', async (t) => {
     if (!dbAvailable) return t.skip('no database');
 
+    // Counted within this suite's own rows only. Counting the whole table
+    // races any concurrently-running spec that writes audit rows, which is how
+    // this test once failed on someone else's audit entry.
     const countBefore = (
-      await db.selectFrom('audit_logs').select('id').execute()
+      await db
+        .selectFrom('audit_logs')
+        .select('id')
+        .where('user_agent', '=', AUDIT_TEST_UA)
+        .execute()
     ).length;
 
     // Fails validation, so nothing changed — there is nothing to audit.
@@ -412,7 +417,11 @@ describe('ZYV-31 auditAdmin middleware end to end', () => {
     await settle();
 
     const countAfter = (
-      await db.selectFrom('audit_logs').select('id').execute()
+      await db
+        .selectFrom('audit_logs')
+        .select('id')
+        .where('user_agent', '=', AUDIT_TEST_UA)
+        .execute()
     ).length;
     assert.equal(countAfter, countBefore, 'a failed mutation was audited');
   });
@@ -420,8 +429,15 @@ describe('ZYV-31 auditAdmin middleware end to end', () => {
   it('does NOT emit an audit row for a blocked customer', async (t) => {
     if (!dbAvailable) return t.skip('no database');
 
+    // Counted within this suite's own rows only. Counting the whole table
+    // races any concurrently-running spec that writes audit rows, which is how
+    // this test once failed on someone else's audit entry.
     const countBefore = (
-      await db.selectFrom('audit_logs').select('id').execute()
+      await db
+        .selectFrom('audit_logs')
+        .select('id')
+        .where('user_agent', '=', AUDIT_TEST_UA)
+        .execute()
     ).length;
 
     const res = await getJson(client, '/api/admin/products/' + UUID_A, {
@@ -437,7 +453,11 @@ describe('ZYV-31 auditAdmin middleware end to end', () => {
     await settle();
 
     const countAfter = (
-      await db.selectFrom('audit_logs').select('id').execute()
+      await db
+        .selectFrom('audit_logs')
+        .select('id')
+        .where('user_agent', '=', AUDIT_TEST_UA)
+        .execute()
     ).length;
     assert.equal(countAfter, countBefore, 'a blocked request was audited');
   });

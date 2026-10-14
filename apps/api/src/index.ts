@@ -2,6 +2,7 @@ import { createApp } from './app.js';
 import { env } from './config/env.js';
 import { db } from './db/client.js';
 import { logger } from './http/logger.js';
+import { warmupPasswordHasher } from './auth/password.js';
 
 /**
  * Server lifecycle — Story ZYV-28.
@@ -15,6 +16,10 @@ import { logger } from './http/logger.js';
 const DRAIN_TIMEOUT_MS = 10_000;
 
 async function start(): Promise<void> {
+  // Equalise login timing before the first request, so an unknown account
+  // never costs more than a real one on a cold process.
+  await warmupPasswordHasher();
+
   const app = createApp();
 
   const server = app.listen(env.PORT, () => {

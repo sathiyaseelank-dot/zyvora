@@ -1,5 +1,6 @@
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 
+import { env } from '../config/env.js';
 import { AppError } from './errors.js';
 
 /**
@@ -135,6 +136,36 @@ export function resetRateLimits(): void {
  * reachable directly, and setting it to the true hop count only when the edge
  * proxy overwrites the header. See config/env.ts.
  */
+/**
+ * The identity a rate-limit bucket is keyed on.
+ *
+ * Two failure modes, one per deployment shape, and the old code was wrong in
+ * one of them:
+ *
+ *  - Behind no proxy, `req.ip` IS the client-supplied X-Forwarded-For when
+ *    trust proxy is on, so keying on it lets an attacker rotate the header and
+ *    get a fresh bucket per request — the limiter never engages.
+ *  - Behind a reverse proxy, `socket.remoteAddress` is ALWAYS the proxy's
+ *    address, so keying on it collapses every user worldwide into one bucket.
+ *    At 10 requests per 15 minutes that is a self-inflicted global outage on
+ *    /api/auth after ten requests from anyone anywhere.
+ *
+ * So: trust the socket unless the deployment says a proxy is in front, in which
+ * case trust `req.ip`, which is only meaningful because TRUST_PROXY was set.
+ */
+export function clientAddress(req: Request): string {
+  // Empty string counts as absent, not as a value. `req.socket.remoteAddress`
+  // is typed as `string`, so `?? ` alone would happily return '' and every
+  // such request would share one global bucket — precisely the outage this
+  // function exists to prevent.
+  const socketAddress = req.socket?.remoteAddress || undefined;
+  const forwarded = req.ip || undefined;
+  if (env.TRUST_PROXY === false || env.TRUST_PROXY === 0) {
+    return socketAddress ?? forwarded ?? 'unknown';
+  }
+  return forwarded ?? socketAddress ?? 'unknown';
+}
+
 export function rateLimit(options: RateLimitOptions): RequestHandler {
   const store = storeFor(options.name);
 
@@ -143,7 +174,7 @@ export function rateLimit(options: RateLimitOptions): RequestHandler {
     // Fall back to the raw socket address rather than req.ip: with
     // `trust proxy` enabled req.ip can be entirely client-controlled, while
     // socket.remoteAddress is whatever the TCP connection actually came from.
-    const address = req.socket?.remoteAddress ?? 'unknown';
+    const address = clientAddress(req);
     const key = `${options.name}:${address}`;
     const bucket = store.hit(key, now, options.windowMs);
 

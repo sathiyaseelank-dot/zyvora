@@ -80,7 +80,11 @@ export async function resolveUser(
   const claims = await verifySession(token);
   if (!claims) return undefined;
 
-  const payload = { sub: claims.sub, iat: claims.issuedAt };
+  const payload = {
+    sub: claims.sub,
+    iat: claims.issuedAt,
+    iatMs: claims.issuedAtMs,
+  };
 
   const row = await db
     .selectFrom('users')
@@ -101,12 +105,24 @@ export async function resolveUser(
 
   // Session revocation. The JWT is stateless, so a password change would
   // otherwise leave every already-issued cookie valid for its full lifetime.
-  // Tokens carry `iat`; anything issued at or before the revocation instant is
-  // dead.
+  // Compared in MILLISECONDS against the signed `iatMs` claim, so a token is
+  // revoked if and only if it was genuinely issued before the reset.
+  //
+  // Both earlier attempts were wrong in opposite directions:
+  //   `iat <= ms/1000`   killed a fresh login made in the same second as the
+  //                      reset, locking the user out of the account they had
+  //                      just reset (reproduced: reset at .749s, then login,
+  //                      then /me returned 401).
+  //   `iat < floor(ms/1000)` saved that login, but let a token minted
+  //                      microseconds BEFORE the reset survive.
+  // The millisecond claim removes the tie rather than picking a side.
   if (row.session_invalid_before) {
-    const revokedAt = row.session_invalid_before.getTime() / 1000;
-    const issuedAt = typeof payload.iat === 'number' ? payload.iat : 0;
-    if (issuedAt <= revokedAt) return undefined;
+    const revokedAtMs = row.session_invalid_before.getTime();
+    const issuedAtMs =
+      typeof payload.iatMs === 'number' ? payload.iatMs : undefined;
+    // A token with no usable issue time cannot be shown to predate the reset,
+    // so it is admitted; `exp` still bounds it.
+    if (issuedAtMs !== undefined && issuedAtMs < revokedAtMs) return undefined;
   }
 
   return {

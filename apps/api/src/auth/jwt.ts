@@ -26,6 +26,25 @@ export interface SessionClaims {
   email: string;
   /** Issued-at seconds, used to honour session revocation. */
   issuedAt?: number;
+  /**
+   * Issued-at in MILLISECONDS, as measured at signing time.
+   *
+   * RFC 7519 defines `iat` as a NumericDate with no fractional part, so it has
+   * one-second resolution. Session revocation compares a token's issue time
+   * against `users.session_invalid_before`, and at one-second resolution the
+   * two are indistinguishable whenever a reset and a fresh login land in the
+   * same second. The old code resolved that tie by killing the new session —
+   * locking a user out of the account they had just reset — while the
+   * alternative (keeping it) leaves a token minted microseconds before the
+   * reset alive.
+   *
+   * Carrying the exact millisecond removes the tie entirely: a token is
+   * revoked if and only if it really was issued before the reset.
+   *
+   * This is a signed claim, so it cannot be forged without the secret; and
+   * `iat` remains authoritative for expiry.
+   */
+  issuedAtMs?: number;
 }
 
 /**
@@ -46,10 +65,16 @@ function isRoleName(value: unknown): value is RoleName {
 
 /** Sign a session token for a user. */
 export async function signSession(claims: SessionClaims): Promise<string> {
-  return new SignJWT({ role: claims.role, email: claims.email })
+  return new SignJWT({
+    role: claims.role,
+    email: claims.email,
+    // Set explicitly rather than left to .setIssuedAt() so the millisecond
+    // value and the whole-second `iat` describe the same instant.
+    iatMs: claims.issuedAtMs ?? Date.now(),
+  })
     .setProtectedHeader({ alg: 'HS256' })
     .setSubject(claims.sub)
-    .setIssuedAt()
+    .setIssuedAt(Math.floor((claims.issuedAtMs ?? Date.now()) / 1000))
     .setExpirationTime(SESSION_TTL)
     .sign(key());
 }
@@ -81,6 +106,14 @@ export async function verifySession(
       email: typeof payload.email === 'string' ? payload.email : '',
       /** Issued-at seconds, used for session revocation. */
       issuedAt: typeof payload.iat === 'number' ? payload.iat : undefined,
+      // Fall back to `iat * 1000` so a token minted before this claim existed
+      // still revokes, at whole-second precision.
+      issuedAtMs:
+        typeof payload.iatMs === 'number'
+          ? payload.iatMs
+          : typeof payload.iat === 'number'
+            ? payload.iat * 1000
+            : undefined,
     };
   } catch {
     return undefined;

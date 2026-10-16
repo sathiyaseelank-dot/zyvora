@@ -378,18 +378,57 @@ describe('ZYV-52 anti-enumeration', () => {
   });
 
   it('creates no reset token for an unknown address', async () => {
-    const before = await db
-      .selectFrom('password_reset_tokens')
-      .selectAll()
-      .execute();
-    await post('/api/auth/forgot-password', {
-      body: { email: 'ghost@example.invalid' },
+    // Scoped to this suite's own user, NOT a global row count.
+    //
+    // `node --test` runs test FILES concurrently, and auth-hardening.test.ts
+    // exercises the same endpoint against the same table. A global count here
+    // therefore depends on whether that file happened to mint a token during
+    // this test — so it passes or fails on scheduling, not on behaviour.
+    //
+    // The scoped form asks the question that actually matters: did an unknown
+    // address cause a reset token to be attributed to a real account? A token
+    // with no user cannot exist (foreign key), and a token aimed at the wrong
+    // user is exactly the defect this would otherwise miss.
+    await register();
+
+    const ghost = 'ghost@example.invalid';
+    const ghostUser = await db
+      .selectFrom('users')
+      .select('id')
+      .where('email', '=', ghost)
+      .executeTakeFirst();
+    assert.equal(
+      ghostUser,
+      undefined,
+      'precondition: the address must be unregistered',
+    );
+
+    const ownedTokens = () =>
+      db
+        .selectFrom('password_reset_tokens')
+        .innerJoin('users', 'users.id', 'password_reset_tokens.user_id')
+        .select('password_reset_tokens.id')
+        .where('users.email', '=', EMAIL)
+        .orderBy('password_reset_tokens.id')
+        .execute();
+
+    const before = await ownedTokens();
+
+    const res = await post('/api/auth/forgot-password', {
+      body: { email: ghost },
     });
-    const after_ = await db
-      .selectFrom('password_reset_tokens')
-      .selectAll()
-      .execute();
-    assert.equal(after_.length, before.length);
+    assert.equal(
+      res.status,
+      202,
+      'the acknowledgement must not reveal the outcome',
+    );
+
+    const after = await ownedTokens();
+    assert.deepEqual(
+      after.map((t) => t.id),
+      before.map((t) => t.id),
+      'an unknown address must not mint or disturb any reset token',
+    );
   });
 });
 

@@ -6,10 +6,11 @@ import { asyncHandler } from '../http/async-handler.js';
 import { AppError } from '../http/errors.js';
 import { validate, valid } from '../http/validate.js';
 import { env } from '../config/env.js';
-import { requireAuth, type RoleName } from '../http/auth.js';
+import { optionalAuth, requireAuth, type RoleName } from '../http/auth.js';
 import { audit } from '../audit/audit-log.js';
 import {
   generateResetToken,
+  dummyVerify,
   hashPassword,
   parseResetTokenId,
   resetTokenSecret,
@@ -45,11 +46,67 @@ import { signSession } from '../auth/jwt.js';
 /**
  * Reset tokens issued during this process, for development use only.
  *
- * Bounded and in-memory: this exists so a developer without a mailer can
- * complete the flow locally, and it evaporates on restart. It is NOT a store
- * — recovery goes through the emailed link once a mailer exists.
+ * This exists so a developer without a mailer can complete the flow locally,
+ * and it evaporates on restart. It is NOT a store — recovery goes through the
+ * emailed link once a mailer exists.
+ *
+ * Two properties it must hold:
+ *
+ *  - Bounded. Entries are pruned by expiry on every insert, and the map is
+ *    capped, so a long-lived process cannot accumulate one raw credential per
+ *    reset request forever. Insertion order is preserved by Map, so the cap
+ *    evicts the oldest.
+ *  - Never populated in production. Holding a raw reset token in memory — and
+ *    returning it in a response — is only ever appropriate behind
+ *    DEV_EXPOSE_RESET_TOKEN, which the env validator already refuses at boot
+ *    when NODE_ENV=production. Writing to this map is gated on the same flag
+ *    so that a misconfigured production process degrades to "the emailed link
+ *    is the only route", which is the safe failure.
  */
 const devResetTokens = new Map<string, { raw: string; expiresAt: number }>();
+export const DEV_RESET_TOKEN_CAP = 100;
+
+export function rememberDevResetToken(
+  userId: string,
+  raw: string,
+  expiresAt: number,
+): void {
+  const now = Date.now();
+  for (const [key, entry] of devResetTokens) {
+    if (entry.expiresAt <= now) devResetTokens.delete(key);
+  }
+  // Each user may already hold an entry; drop the stale one first so the cap
+  // counts distinct users rather than history.
+  devResetTokens.delete(userId);
+  devResetTokens.set(userId, { raw, expiresAt });
+  while (devResetTokens.size > DEV_RESET_TOKEN_CAP) {
+    const oldest = devResetTokens.keys().next();
+    if (oldest.done) break;
+    devResetTokens.delete(oldest.value);
+  }
+}
+
+/**
+ * Size of the in-process development token map.
+ *
+ * Exists so the bound can be asserted directly. The alternative — inferring it
+ * from the `password_reset_tokens` table — measures the wrong thing entirely:
+ * the database enforces "one live token per user" by deleting the previous
+ * row, so the table stays at one while the map is what actually grows. A test
+ * written against the table passed with the cap disabled.
+ */
+export function devResetTokenCount(): number {
+  return devResetTokens.size;
+}
+
+/**
+ * Empty the map. Test-only: without it, the cap tests fill the map and every
+ * later assertion about it measures the cap rather than the behaviour under
+ * test — the assertions would pass or fail on test ORDER.
+ */
+export function resetDevResetTokens(): void {
+  devResetTokens.clear();
+}
 
 export const authRouter: Router = Router();
 
@@ -357,6 +414,10 @@ authRouter.get(
 authRouter.post(
   '/logout',
   requireCsrf,
+  // optionalAuth, not requireAuth: logging out with an expired or already
+  // cleared cookie should still succeed. Without it req.user is always
+  // undefined and the `auth.logged_out` audit below is unreachable.
+  optionalAuth(),
   asyncHandler(async (req: Request, res: Response) => {
     // Recorded before the cookie is cleared, while req.user is still readable.
     if (req.user) {
@@ -423,10 +484,23 @@ authRouter.post(
       //
       // It is instead recorded in-process only, and surfaced to the developer
       // through an explicitly opted-in, development-only response field.
-      devResetTokens.set(user.id, {
-        raw,
-        expiresAt: RESET_TTL_MINUTES * 60_000,
-      });
+      // Absolute expiry as a Unix-millisecond timestamp, matching how
+      // `expires_at` is stored on the row and how the pruner compares. This
+      // was a bare duration in seconds-of-TTL, i.e. a number that looked like
+      // "expired in 1970", so the dev token was dead the moment it was issued.
+      //
+      // Gated on the same flag that surfaces it: holding a raw reset token in
+      // process memory is only ever appropriate in a development setup that
+      // has explicitly asked for the token back. A misconfigured production
+      // process degrades to "the emailed link is the only route", which is
+      // the safe failure — not "every raw token stays resident in RAM".
+      if (env.DEV_EXPOSE_RESET_TOKEN) {
+        rememberDevResetToken(
+          user.id,
+          raw,
+          Date.now() + RESET_TTL_MINUTES * 60_000,
+        );
+      }
 
       if (env.NODE_ENV === 'production' && env.DEV_EXPOSE_RESET_TOKEN) {
         // Refusing loudly beats honouring a foot-gun in production.
@@ -435,6 +509,17 @@ authRouter.post(
             'returns live password-reset tokens in an API response.',
         );
       }
+    } else {
+      // No account. Burn comparable time before acknowledging, because the
+      // account branch pays for an Argon2id hash (~45ms) and two writes while
+      // this branch would otherwise return in single-digit milliseconds.
+      //
+      // Measured before the fix: unknown address 3.7ms, known address 51.6ms —
+      // a 14x gap, identical status code and identical body. That is a working
+      // account-enumeration oracle and it defeats the point of ZYV-52, which
+      // explicitly requires forgot-password not to reveal whether an address
+      // is registered.
+      await dummyVerify(email);
     }
 
     // Identical response either way, so this cannot enumerate accounts. The
@@ -522,35 +607,46 @@ authRouter.post(
 
     const newHash = await hashPassword(password);
 
-    // Mark used first so a concurrent request cannot reuse the same token.
-    const claimed = await db
-      .updateTable('password_reset_tokens')
-      .set({ used_at: new Date() })
-      .where('id', '=', match.id)
-      .where('used_at', 'is', null)
-      .executeTakeFirst();
-
-    if (Number(claimed.numUpdatedRows ?? 0) === 0) {
-      throw new AppError(
-        'BAD_REQUEST',
-        'This reset link has already been used',
-      );
-    }
-
+    // Claiming the token and writing the new password are ONE unit of work.
+    // Run separately, a failure between them burns the link while leaving the
+    // password unchanged: the user is told the reset failed, the only copy of
+    // their link is spent, and they must start the whole flow again — with any
+    // stolen session still valid. In a transaction either both land or neither
+    // does.
+    //
+    // The conditional UPDATE (`used_at IS NULL`) is still what makes
+    // concurrent redemptions safe: the second writer matches zero rows and
+    // throws, and that throw unwinds only its own transaction.
     const changedAt = new Date();
 
-    await db
-      .updateTable('users')
-      .set({
-        password_hash: newHash,
-        updated_at: changedAt,
-        // Kill every session issued before now. A password change is the
-        // standard response to a suspected compromise, and leaving old
-        // cookies alive would make it pointless.
-        session_invalid_before: changedAt,
-      })
-      .where('id', '=', match.user_id)
-      .execute();
+    await db.transaction().execute(async (trx) => {
+      const claimed = await trx
+        .updateTable('password_reset_tokens')
+        .set({ used_at: changedAt })
+        .where('id', '=', match.id)
+        .where('used_at', 'is', null)
+        .executeTakeFirst();
+
+      if (Number(claimed.numUpdatedRows ?? 0) === 0) {
+        throw new AppError(
+          'BAD_REQUEST',
+          'This reset link has already been used',
+        );
+      }
+
+      await trx
+        .updateTable('users')
+        .set({
+          password_hash: newHash,
+          updated_at: changedAt,
+          // Kill every session issued before now. A password change is the
+          // standard response to a suspected compromise, and leaving old
+          // cookies alive would make it pointless.
+          session_invalid_before: changedAt,
+        })
+        .where('id', '=', match.user_id)
+        .execute();
+    });
 
     void audit(req, {
       action: 'auth.password_reset',

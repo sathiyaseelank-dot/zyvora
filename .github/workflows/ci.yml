@@ -135,6 +135,15 @@ jobs:
           npm run test -w @zyvora/api  2>&1 | tee /tmp/api-tests.log
           npm run test -w @zyvora/web 2>&1 | tee /tmp/web-tests.log
 
+          # Colour codes first. Vitest writes, uncoloured,
+          #   Tests  23 passed (23)
+          # but on a TTY it emits
+          #   \e[2m Tests \e[22m \e[90m \e[2m23 passed\e[39m
+          # so the number is separated from its label by escape sequences, not
+          # spaces. Matching the raw output reads a healthy suite as zero --
+          # a gate that fails when everything is fine is worse than none.
+          sed -i 's/\x1b\[[0-9;]*m//g' /tmp/api-tests.log /tmp/web-tests.log
+
           # Node's runner prints the summary with an info glyph (U+2139) in the
           # default reporter and with '#' in strict TAP. Match both - a gate
           # that silently reads 0 because the prefix changed is worse than no

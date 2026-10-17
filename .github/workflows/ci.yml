@@ -65,7 +65,17 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          # 24, not 20. Node 20 went end-of-life in April 2026 and the tree
+          # no longer supports it: jsdom 30 depends on undici 8, whose engines
+          # field requires Node >= 22.19.
+          #
+          # This was not caught by a red build at first. Under Node 20 vitest
+          # loaded jsdom, undici threw while initialising, and the web suites
+          # reported "3 test files" having run ZERO tests in 447ms. The run
+          # only failed because vitest refuses to ignore unhandled errors —
+          # had it not, CI would have shown a green frontend gate that verified
+          # nothing at all.
+          node-version: '24'
           cache: npm
 
       # `npm ci`, not `npm install`: it installs exactly the lockfile and fails
@@ -105,6 +115,43 @@ jobs:
 
       - name: Test
         run: npm run test
+
+      # A suite that runs nothing must not be able to pass.
+      #
+      # This gate exists because one did. On Node 20 jsdom failed to initialise,
+      # and vitest reported "Test Files (3)" — three files it had discovered —
+      # while running ZERO tests in 447ms. The step only failed by accident,
+      # because vitest treats the accompanying unhandled error as fatal. Had
+      # that not happened, a green check would have stood in for a frontend
+      # suite that verified nothing.
+      #
+      # So the counts are asserted, not inferred. Each runner must report at
+      # least as many tests as it has cases, and zero fails outright.
+      - name: Assert the test suites actually executed
+        run: |
+          set -euo pipefail
+          # Re-run each workspace separately so the counts are attributable.
+          # Cheap next to a false green.
+          npm run test -w @zyvora/api  2>&1 | tee /tmp/api-tests.log
+          npm run test -w @zyvora/web 2>&1 | tee /tmp/web-tests.log
+
+          # Node's runner prints the summary with an info glyph (U+2139) in the
+          # default reporter and with '#' in strict TAP. Match both - a gate
+          # that silently reads 0 because the prefix changed is worse than no
+          # gate at all.
+          api_ran=$(grep -aEo '^(#|.) tests [0-9]+' /tmp/api-tests.log | tail -1 | grep -Eo '[0-9]+$' || echo 0)
+          api_passed=$(grep -aEo '^(#|.) pass [0-9]+' /tmp/api-tests.log | tail -1 | grep -Eo '[0-9]+$' || echo 0)
+          api_failed=$(grep -aEo '^(#|.) fail [0-9]+' /tmp/api-tests.log | tail -1 | grep -Eo '[0-9]+$' || echo 0)
+          web_passed=$(grep -aEo 'Tests +[0-9]+ passed' /tmp/web-tests.log | tail -1 | grep -Eo '[0-9]+' || echo 0)
+
+          echo "API: ran=${api_ran} passed=${api_passed} failed=${api_failed}"
+          echo "WEB: passed=${web_passed}"
+
+          fail=0
+          [ "$api_ran" -gt 0 ] || { echo "::error::API suite ran 0 tests"; fail=1; }
+          [ "$web_passed" -gt 0 ] || { echo "::error::WEB suite ran 0 tests — the runner did not execute"; fail=1; }
+          [ "$api_failed" -eq 0 ] || { echo "::error::API suite had ${api_failed} failures"; fail=1; }
+          exit $fail
 
       - name: Build
         run: npm run build

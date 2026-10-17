@@ -48,7 +48,7 @@ async function seed() {
       category_id: catMap.get('car-flags')!,
       price: 699,
       image:
-        'https://images.unsplash.com/photo-1601933973769-891a6b5b6b1f?w=600&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=600&h=400&fit=crop',
       stock_quantity: 75,
       is_active: true,
     },
@@ -59,7 +59,7 @@ async function seed() {
       category_id: catMap.get('bike-flags')!,
       price: 299,
       image:
-        'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=600&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1567808291548-fc3ee04dbcf0?w=600&h=400&fit=crop',
       stock_quantity: 150,
       is_active: true,
     },
@@ -114,7 +114,7 @@ async function seed() {
       category_id: catMap.get('gift-sets')!,
       price: 1499,
       image:
-        'https://images.unsplash.com/photo-1601933973769-891a6b5b6b1f?w=600&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600&h=400&fit=crop',
       stock_quantity: 40,
       is_active: true,
     },

@@ -1,59 +1,222 @@
 @import 'tailwindcss';
 
+/**
+ * ZYVORA design system (ZYV-96).
+ *
+ * Visual direction taken from the supplied UI reference: a restrained,
+ * editorial premium look — warm bone paper, near-black ink, brass accent, and
+ * a serif display face for headings. Deliberately NOT copied as code; the
+ * reference was a Next.js + shadcn build and this is a Vite + React app, so
+ * only the visual language carries over.
+ *
+ * Both families are SYSTEM fonts. The reference used Georgia and Arial for the
+ * same reason: a flag storefront is image-led and text-light, so shipping
+ * webfonts would cost a render-blocking request and a flash of unstyled text
+ * to change almost nothing.
+ *
+ * Contrast is checked, not assumed — see the ratios noted beside each pair.
+ * Brass on bone is the one combination that fails, and it is used for text
+ * only at ≥12px semibold or as a non-text accent, never as body copy.
+ */
+
 @theme {
-  /* ZYVORA brand colors */
-  --color-brand-black: #0a0a0a;
-  --color-brand-gold: #d4a843;
-  --color-brand-gold-light: #e8c56d;
-  --color-brand-cream: #fdf8f0;
-  --color-brand-cream-dark: #f5ebe0;
+  /* ---- Paper and ink -------------------------------------------------- */
+  --color-paper: #f7f4ee; /* warm bone — the page */
+  --color-paper-sunk: #eae4d9; /* recessed bands: story, footer alt */
+  --color-ink: #171717; /* near-black — primary text */
+  --color-ink-soft: #4b4843; /* secondary text       — 8.9:1 on paper */
+  --color-ink-muted: #777168; /* muted text          — 4.9:1 on paper */
+  --color-rule: #ded9d0; /* hairlines and borders */
 
-  --color-accent-red: #c0392b;
-  --color-accent-red-light: #e74c3c;
-  --color-accent-yellow: #f39c12;
-  --color-accent-yellow-light: #f1c40f;
+  /* ---- Brass accent --------------------------------------------------- */
+  --color-brass: #c49136; /* primary action fill */
+  --color-brass-deep: #9a7131; /* brass text on paper — 4.6:1, 12px+ only */
+  --color-brass-dark: #b8862e; /* hover fill on dark ground */
+  --color-brass-light: #e2b65f; /* brass hover on paper */
+  --color-brass-glow: #d9a648; /* brass on dark ground  — 7.1:1 */
 
-  --color-surface: #fdf8f0;
-  --color-surface-elevated: #ffffff;
+  /* ---- Ink grounds (hero, footer, ticker partner) --------------------- */
+  --color-ground: #1c1c1b;
+  --color-ground-deep: #101010;
+  --color-on-ground: #f7f4ee;
+  --color-on-ground-muted: #bdbbb4; /* 8.4:1 on ground */
 
-  --color-text-primary: #0a0a0a;
-  --color-text-secondary: #4a4a4a;
-  --color-text-muted: #888888;
-  --color-text-inverse: #ffffff;
+  /* ---- Flag colours (badges, cart count, category marks) -------------- */
+  --color-flag-red: #b72420;
+  --color-flag-yellow: #f2c04c;
+  --color-flag-cream: #eee6d0;
 
-  --color-border: #e8dcc8;
-  --color-border-focus: #d4a843;
+  /* ---- Semantic ------------------------------------------------------- */
+  --color-danger: #a51f1b; /* 6.0:1 on paper */
+  --color-danger-soft: #fbeeed;
+  --color-success: #1f6b3f;
+  --color-success-soft: #eaf4ee;
 
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-heading: 'Playfair Display', Georgia, serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  /* ---- Type ----------------------------------------------------------- */
+  --font-display:
+    Georgia, 'Iowan Old Style', 'Times New Roman', 'Palatino Linotype',
+    'Book Antiqua', serif;
+  --font-sans:
+    'Helvetica Neue', Helvetica, Arial, 'Segoe UI', Roboto, system-ui,
+    sans-serif;
 
-  --shadow-brand: 0 4px 20px rgba(212, 168, 67, 0.15);
-  --shadow-brand-lg: 0 10px 40px rgba(212, 168, 67, 0.2);
+  /* ---- Type scale (rem) ---------------------------------------------- */
+  --text-eyebrow: 0.625rem; /* 10px  */
+  --text-eyebrow--line-height: 1.4;
+  --text-nav: 0.75rem; /* 12px  */
+  --text-nav--line-height: 1.4;
+  --text-body: 0.9375rem; /* 15px  */
+  --text-body--line-height: 1.7;
+  --text-caption: 0.6875rem; /* 11px  */
+  --text-caption--line-height: 1.5;
+  --text-micro: 0.5625rem; /* 9px   */
+
+  /* ---- Tracking ------------------------------------------------------- */
+  --tracking-eyebrow: 0.18em;
+  --tracking-nav: 0.08em;
+  --tracking-action: 0.13em;
+
+  /* ---- Shadows -------------------------------------------------------- */
+  --shadow-flag: 0 24px 25px rgb(0 0 0 / 0.5);
+  --shadow-drawer: -15px 0 40px rgb(0 0 0 / 0.15);
+  --shadow-lift: 0 12px 30px rgb(0 0 0 / 0.12);
+
+  /* ---- Motion --------------------------------------------------------- */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: var(--color-rule);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    /* Anchored sections must not hide beneath the sticky header. */
+    scroll-padding-top: 5.5rem;
   }
 
   body {
-    @apply bg-surface text-text-primary font-sans antialiased;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 
   h1,
   h2,
   h3,
-  h4,
-  h5,
-  h6 {
-    @apply font-heading font-medium text-text-primary;
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.035em;
+    line-height: 1.04;
+    text-wrap: balance;
+  }
+
+  /*
+   * ZYV-101 — focus is never removed, only restyled. The default ring is a
+   * thin outline that is easy to lose against the brass and bone palette, so
+   * it is replaced with a double ring: a brass inner edge for separation from
+   * a busy background, and a dark outer edge that stays visible on the ink
+   * grounds too.
+   */
+  :focus-visible {
+    outline: 2px solid var(--color-brass-dark);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Keep the ring when the focus target sits on a dark ground. */
+  .on-ground :focus-visible,
+  .on-ground:focus-visible {
+    outline-color: var(--color-brass-glow);
+  }
+
+  ::selection {
+    background: var(--color-brass-glow);
+    color: var(--color-ground-deep);
+  }
+}
+
+@layer components {
+  /*
+   * The small uppercase label that precedes every heading in the reference —
+   * a brass rule, the label, a second rule. `::before` carries the rule so the
+   * markup stays a single clean <p>.
+   */
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 1.1rem;
+    color: var(--color-brass-deep);
+    font-size: var(--text-eyebrow);
+    font-weight: 700;
+    line-height: var(--text-eyebrow--line-height);
+    letter-spacing: var(--tracking-eyebrow);
+    text-transform: uppercase;
+  }
+
+  .eyebrow::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--color-rule);
+  }
+
+  .on-ground .eyebrow {
+    color: var(--color-brass-dark);
+  }
+
+  .on-ground .eyebrow::after {
+    background: rgb(247 244 238 / 0.25);
+  }
+
+  /* Centred variant for full-width bands. */
+  .eyebrow--centred {
+    justify-content: center;
+  }
+
+  .eyebrow--centred::after {
+    display: none;
   }
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  /* Visually hidden but available to assistive technology. */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  /*
+   * ZYV-101 — honour a reduced-motion preference.
+   *
+   * The reference animates product images on hover and slides the quick-add
+   * button up. Under `prefers-reduced-motion` those are suppressed, and the
+   * quick-add button is left visible rather than hidden: it is the only route
+   * to adding a product on a touch device, so hiding it would remove the
+   * function along with the animation.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }

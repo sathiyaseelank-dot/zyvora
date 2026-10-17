@@ -10,7 +10,9 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { AccountPage } from './pages/AccountPage';
+import { CartPage } from './pages/CartPage';
 import { CatalogPage } from './pages/CatalogPage';
+import { CraftPage } from './pages/CraftPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 /**
@@ -36,7 +38,9 @@ export function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/catalog" element={<CatalogPage />} />
-          <Route path="/about" element={<CatalogPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          {/* Was rendering <CatalogPage /> under the "Craft" label. */}
+          <Route path="/about" element={<CraftPage />} />
 
           <Route
             path="/login"

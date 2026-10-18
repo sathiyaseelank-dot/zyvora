@@ -1,0 +1,32 @@
+# Supabase configuration for ZYVORA.
+#
+# Only the migration behaviour matters here. Supabase's GitHub integration
+# applies the SQL files in `supabase/migrations/` on push to the production
+# branch; it ignores config, auth and seed files by default (per the official
+# docs, "Database Migrations" and "GitHub integration" pages).
+#
+# The backend does NOT use Supabase Auth. Authentication is the Express
+# implementation in apps/api/src/auth — Argon2id password hashing, JWT session
+# cookies, double-submit CSRF. `users` here is the application's own table and
+# has a `password_hash` column, which is not a Supabase Auth table at all.
+# Nothing in this file enables or configures Supabase Auth, and adding it would
+# introduce a second, competing identity system.
+
+# Confirmed against the connected project via the Supabase API.
+project_id = "ycqheltqwgkvxblsqqab"
+
+[db]
+# Standard Supabase defaults for a hosted project.
+major_version = 15
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db.migrations]
+# Applied by the GitHub integration, not by `supabase db push` against this
+# project's remote. Kept explicit so the intent is readable.
+schema_paths = []

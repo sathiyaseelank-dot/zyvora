@@ -2,7 +2,11 @@ import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 
 import { db } from '../db/client.js';
-import type { ProductCategory, ProductSummary } from '@zyvora/types';
+import type {
+  ProductCategory,
+  ProductSummary,
+  RatingSummary,
+} from '@zyvora/types';
 import { asyncHandler } from '../http/async-handler.js';
 import { AppError } from '../http/errors.js';
 import { validate, valid } from '../http/validate.js';
@@ -64,20 +68,94 @@ interface SearchQuery {
   pageSize: number;
 }
 
-function toSummary(row: {
+/**
+ * Stock is `inventory` and nothing else (migration 005). `inventory` holds
+ * exactly one row per product — the seed writes one and nothing else does —
+ * so a LEFT JOIN is safe here and cannot duplicate a product row and skew the
+ * page window. If that invariant is ever broken, this join silently breaks
+ * pagination rather than erroring, so it is stated rather than assumed.
+ */
+type SummaryRow = {
   id: string;
   name: string;
   price: number;
   image: string;
   category_slug: string;
-}): ProductSummary {
+  quantity: number | null;
+  reserved_quantity: number | null;
+};
+
+/**
+ * Verified-purchase ratings for a page of products.
+ *
+ * Two decisions that are both about not lying to the customer:
+ *
+ *  - Only `is_verified_purchase` rows count. An unverified review is a claim by
+ *    someone who did not buy the flag, and averaging it in would put a number
+ *    on the page that the business cannot stand behind.
+ *  - A product with no verified reviews is absent from the map, so the summary
+ *    carries `rating: null`. That is different from a rating of zero, and the
+ *    UI must be able to tell the difference.
+ *
+ * Aggregated for the page's ids in one query rather than per product, so this
+ * stays at two round trips per request regardless of page size.
+ */
+async function verifiedRatings(
+  ids: string[],
+): Promise<Map<string, RatingSummary>> {
+  const ratings = new Map<string, RatingSummary>();
+  if (ids.length === 0) return ratings;
+
+  const rows = await db
+    .selectFrom('reviews')
+    .select([
+      'product_id',
+      (eb) => eb.fn.avg<number>('rating').as('average'),
+      (eb) => eb.fn.countAll<string>().as('review_count'),
+    ])
+    .where('is_verified_purchase', '=', true)
+    .where('product_id', 'in', ids)
+    .groupBy('product_id')
+    .execute();
+
+  for (const row of rows) {
+    const count = Number(row.review_count);
+    const average = Number(row.average);
+    // A count with no mean would mean every rating in the group was NULL. The
+    // schema forbids that today, but a rating of `NaN` reaching the storefront
+    // would render as "NaN★", so the row is dropped rather than forwarded.
+    if (count === 0 || !Number.isFinite(average)) continue;
+    ratings.set(row.product_id, {
+      average: Math.round(average * 10) / 10,
+      count,
+    });
+  }
+  return ratings;
+}
+
+/**
+ * Turns a page of rows into the wire shape. Stock and rating are passed in
+ * rather than queried here so the three call sites stay symmetric.
+ */
+function toSummary(
+  row: SummaryRow,
+  stock: { inStock: boolean },
+  ratings: Map<string, RatingSummary>,
+): ProductSummary {
   return {
     id: row.id,
     name: row.name,
     price: row.price,
     category: row.category_slug as ProductCategory,
     image: row.image,
+    inStock: stock.inStock,
+    rating: ratings.get(row.id) ?? null,
   };
+}
+
+/** On-hand minus reserved. No `inventory` row means nothing is sellable. */
+function sellable(row: SummaryRow): boolean {
+  return (row.quantity ?? 0) - (row.reserved_quantity ?? 0) > 0;
 }
 
 export const catalogRouter: Router = Router();
@@ -106,6 +184,7 @@ catalogRouter.get(
     let query = db
       .selectFrom('products')
       .innerJoin('categories', 'categories.id', 'products.category_id')
+      .leftJoin('inventory', 'inventory.product_id', 'products.id')
       .select([
         'products.id',
         'products.name',
@@ -113,6 +192,8 @@ catalogRouter.get(
         'products.price',
         'products.image',
         'categories.slug as category_slug',
+        'inventory.quantity',
+        'inventory.reserved_quantity',
       ])
       .where('products.is_active', '=', true);
 
@@ -138,6 +219,10 @@ catalogRouter.get(
     const rows = await query.limit(pageSize).offset(offset).execute();
 
     // Count must ignore the page window but keep the same filters.
+    // Deliberately NOT joined to inventory, unlike the page query above. An
+    // inner join would exclude products that have no stock row, so `total` and
+    // the rows on this page would disagree about how many products exist. The
+    // row query LEFT JOINs and reports those products as out of stock instead.
     let countQuery = db
       .selectFrom('products')
       .innerJoin('categories', 'categories.id', 'products.category_id')
@@ -149,8 +234,10 @@ catalogRouter.get(
     const counted = await countQuery.executeTakeFirstOrThrow();
     const totalCount = Number(counted.total);
 
+    const ratings = await verifiedRatings(rows.map((r) => r.id));
+
     res.json({
-      data: rows.map(toSummary),
+      data: rows.map((row) => toSummary(row, { inStock: sellable(row) }, ratings)),
       meta: {
         page,
         pageSize,
@@ -177,6 +264,7 @@ catalogRouter.get(
     const rows = await db
       .selectFrom('products')
       .innerJoin('categories', 'categories.id', 'products.category_id')
+      .leftJoin('inventory', 'inventory.product_id', 'products.id')
       .select([
         'products.id',
         'products.name',
@@ -184,6 +272,8 @@ catalogRouter.get(
         'products.price',
         'products.image',
         'categories.slug as category_slug',
+        'inventory.quantity',
+        'inventory.reserved_quantity',
       ])
       .where('products.is_active', '=', true)
       .where((eb) =>
@@ -197,8 +287,10 @@ catalogRouter.get(
       .offset(offset)
       .execute();
 
+    const ratings = await verifiedRatings(rows.map((r) => r.id));
+
     res.json({
-      data: rows.map(toSummary),
+      data: rows.map((row) => toSummary(row, { inStock: sellable(row) }, ratings)),
       meta: { page, pageSize, query: q },
     });
   }),
@@ -214,6 +306,7 @@ catalogRouter.get(
     const row = await db
       .selectFrom('products')
       .innerJoin('categories', 'categories.id', 'products.category_id')
+      .leftJoin('inventory', 'inventory.product_id', 'products.id')
       .select([
         'products.id',
         'products.name',
@@ -221,6 +314,8 @@ catalogRouter.get(
         'products.price',
         'products.image',
         'categories.slug as category_slug',
+        'inventory.quantity',
+        'inventory.reserved_quantity',
       ])
       .where('products.id', '=', id)
       .where('products.is_active', '=', true)
@@ -230,21 +325,15 @@ catalogRouter.get(
       throw new AppError('NOT_FOUND', 'Product not found');
     }
 
-    const available = await db
-      .selectFrom('inventory')
-      .select(['quantity', 'reserved_quantity'])
-      .where('product_id', '=', id)
-      .executeTakeFirst();
-
-    const onHand = available
-      ? available.quantity - available.reserved_quantity
-      : 0;
+    const ratings = await verifiedRatings([row.id]);
+    // Computed from the joined row rather than a second inventory query, so
+    // the detail view and the listing can never disagree about availability.
+    const onHand = (row.quantity ?? 0) - (row.reserved_quantity ?? 0);
 
     res.json({
       data: {
-        ...toSummary(row),
+        ...toSummary(row, { inStock: onHand > 0 }, ratings),
         description: row.description,
-        inStock: onHand > 0,
         quantityAvailable: onHand,
       },
     });

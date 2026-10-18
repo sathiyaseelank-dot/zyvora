@@ -58,12 +58,35 @@ export type ProductCategory =
  */
 export type ProductId = string;
 
+/**
+ * A rating, computed from genuine rows in `reviews`.
+ *
+ * `null` on a summary means "no rating to show", NOT "rated zero". Those are
+ * different things and collapsing them is how a storefront ends up printing
+ * "0.0 from 0 reviews" for a product nobody has bought. The field is nullable
+ * precisely so the UI can stay silent instead of inventing a number.
+ */
+export interface RatingSummary {
+  /** Mean of verified-purchase ratings, to one decimal place. */
+  average: number;
+  /** How many verified reviews the mean is drawn from. */
+  count: number;
+}
+
 export interface ProductSummary {
   id: ProductId;
   name: string;
   price: Price;
   category: ProductCategory;
   image: string;
+  /**
+   * Sellable stock: on-hand minus reserved. A product with no `inventory` row
+   * at all is NOT in stock — absence of a row is not evidence of availability,
+   * and defaulting it to `true` would advertise items that cannot be bought.
+   */
+  inStock: boolean;
+  /** Null until genuine verified reviews exist. See {@link RatingSummary}. */
+  rating: RatingSummary | null;
 }
 
 export interface Product extends ProductSummary {

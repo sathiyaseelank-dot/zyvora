@@ -38,8 +38,9 @@ async function seed() {
       price: 499,
       image:
         'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=600&h=400&fit=crop',
-      stock_quantity: 100,
       is_active: true,
+      // Stock lives in `inventory` only. See migration 005.
+      stock: 100,
     },
     {
       name: 'ZYVORA Deluxe Car Flag — Saffron & Green',
@@ -49,8 +50,9 @@ async function seed() {
       price: 699,
       image:
         'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=600&h=400&fit=crop',
-      stock_quantity: 75,
       is_active: true,
+      // Stock lives in `inventory` only. See migration 005.
+      stock: 75,
     },
     {
       name: 'ZYVORA Bike Flag — Racing Stripes',
@@ -60,8 +62,9 @@ async function seed() {
       price: 299,
       image:
         'https://images.unsplash.com/photo-1567808291548-fc3ee04dbcf0?w=600&h=400&fit=crop',
-      stock_quantity: 150,
       is_active: true,
+      // Stock lives in `inventory` only. See migration 005.
+      stock: 150,
     },
     {
       name: 'ZYVORA Bike Flag — Tricolour Mini',
@@ -71,8 +74,9 @@ async function seed() {
       price: 199,
       image:
         'https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=600&h=400&fit=crop',
-      stock_quantity: 200,
       is_active: true,
+      // Stock lives in `inventory` only. See migration 005.
+      stock: 200,
     },
     {
       name: 'ZYVORA Magnetic Mount Kit — Universal',
@@ -82,8 +86,9 @@ async function seed() {
       price: 399,
       image:
         'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&h=400&fit=crop',
-      stock_quantity: 120,
       is_active: true,
+      // Stock lives in `inventory` only. See migration 005.
+      stock: 120,
     },
     {
       name: 'ZYVORA Telescopic Pole — Carbon Fibre (1.5m)',
@@ -93,8 +98,9 @@ async function seed() {
       price: 899,
       image:
         'https://images.unsplash.com/photo-1551632811-561732d1e306?w=600&h=400&fit=crop',
-      stock_quantity: 50,
       is_active: true,
+      // Stock lives in `inventory` only. See migration 005.
+      stock: 50,
     },
     {
       name: 'ZYVORA Enthusiast Gift Set — Car + Bike',
@@ -104,8 +110,9 @@ async function seed() {
       price: 1999,
       image:
         'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=600&h=400&fit=crop',
-      stock_quantity: 25,
       is_active: true,
+      // Stock lives in `inventory` only. See migration 005.
+      stock: 25,
     },
     {
       name: 'ZYVORA Family Pack — 3 Car Flags',
@@ -115,35 +122,54 @@ async function seed() {
       price: 1499,
       image:
         'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600&h=400&fit=crop',
-      stock_quantity: 40,
       is_active: true,
+      // Stock lives in `inventory` only. See migration 005.
+      stock: 40,
     },
   ];
 
+  // Product name -> inserted id, so inventory can be attached without a second
+  // round trip or a query keyed on a name that is not unique by schema.
+  const insertedIds = new Map<string, string>();
+
   for (const product of products) {
-    await db
+    const inserted = await db
       .insertInto('products')
       .values({
-        ...product,
+        // `stock` is deliberately not spread into products: the column does
+        // not exist (migration 005). It is consumed when inventory is seeded.
+        name: product.name,
+        description: product.description,
+        category_id: product.category_id,
+        price: product.price,
+        image: product.image,
+        is_active: product.is_active,
         id: crypto.randomUUID(),
         created_at: new Date(),
         updated_at: new Date(),
       })
-      .execute();
+      .returning('id')
+      .executeTakeFirstOrThrow();
+    insertedIds.set(product.name, inserted.id);
   }
 
-  // Seed inventory (1:1 with products)
-  const insertedProducts = await db
-    .selectFrom('products')
-    .select(['id'])
-    .execute();
-  for (const product of insertedProducts) {
+  // Seed inventory (1:1 with products), from the figures declared alongside the
+  // products above rather than a round trip — the `products` table has no stock
+  // column at all (migration 005).
+  for (const product of products) {
     await db
       .insertInto('inventory')
       .values({
         id: crypto.randomUUID(),
-        product_id: product.id,
-        quantity: 100,
+        product_id: insertedIds.get(product.name)!,
+        // The product's declared stock, not a flat 100.
+        //
+        // It used to be 100 for every row while the per-product figure went
+        // into `products.stock_quantity` — a column nothing read. Since the
+        // catalog and the cart both take stock from `inventory`, every product
+        // advertised 100 units regardless of its actual stock, and a 25-unit
+        // product would have been sold 75 times over.
+        quantity: product.stock,
         reserved_quantity: 0,
         created_at: new Date(),
         updated_at: new Date(),

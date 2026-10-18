@@ -2,6 +2,8 @@ import { after, before, beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { createApp } from '../src/app.js';
+import { sql } from 'kysely';
+
 import { db } from '../src/db/client.js';
 import { CSRF_HEADER } from '../src/auth/session.js';
 import { resetRateLimits } from '../src/http/rate-limit.js';
@@ -808,5 +810,75 @@ describe('ZYV-49 guest to account merge', () => {
       cart,
       'an account cart must exist after signing in with a basket',
     );
+  });
+});
+
+describe('stock has exactly one source', () => {
+  it('has no stock_quantity column on products', async () => {
+    // Migration 005 dropped it. It was never read by anything, and while it
+    // existed it held plausible per-product figures that disagreed with the
+    // `inventory` the catalog and cart actually read — so the storefront
+    // advertised 100 units of a 25-unit product.
+    //
+    // This is a schema assertion rather than a behaviour one on purpose: the
+    // failure mode being guarded is somebody adding the column back, and no
+    // request-level test would notice until a product sold out.
+    // `.execute()` resolves to a QueryResult, so the rows are on `.rows`.
+    // Reading `.length` off the result itself is undefined and the assertion
+    // below would fail against a perfectly healthy schema.
+    const cols = await sql<{ column_name: string }>`
+      select column_name from information_schema.columns
+       where table_schema = 'public'
+         and table_name = 'products'
+         and column_name = 'stock_quantity'
+    `.execute(db);
+    assert.equal(
+      cols.rows.length,
+      0,
+      'products.stock_quantity must not exist; inventory is the only stock source',
+    );
+  });
+
+  it("seeds inventory with each product's own declared stock", async () => {
+    // The regression guard for the seed writing a flat 100 into inventory while
+    // the real figure went into the dropped column. If this ever returns a
+    // table of 100s, the storefront is once again lying about availability.
+    const rows = await db
+      .selectFrom('inventory')
+      .innerJoin('products', 'products.id', 'inventory.product_id')
+      .select(['products.name', 'inventory.quantity'])
+      .where('products.is_active', '=', true)
+      .execute();
+
+    assert.ok(rows.length >= 3, 'fixture needs several products');
+    const distinct = new Set(rows.map((r) => r.quantity));
+    assert.ok(
+      distinct.size > 1,
+      `every seeded product has the same stock (${[...distinct].join(', ')}), ` +
+        'so the per-product figures are being lost again',
+    );
+  });
+
+  it('reports catalog availability from inventory, not a product column', async () => {
+    const target = await db
+      .selectFrom('inventory')
+      .innerJoin('products', 'products.id', 'inventory.product_id')
+      .select(['products.id', 'products.name', 'inventory.quantity'])
+      .where('products.is_active', '=', true)
+      .orderBy('inventory.quantity', 'asc')
+      .executeTakeFirst();
+
+    const res = await fetch(`${client.url}/api/products/${target.id}`);
+    assert.equal(res.status, 200);
+    const body = (await res.json()) as {
+      data: { quantityAvailable: number; inStock: boolean };
+    };
+
+    assert.equal(
+      body.data.quantityAvailable,
+      target.quantity,
+      `catalog must report inventory.quantity for ${target.name}`,
+    );
+    assert.equal(body.data.inStock, target.quantity > 0);
   });
 });

@@ -81,7 +81,6 @@ export interface ProductTable {
   category_id: string;
   price: number; // INR rupees, integer
   image: string; // single image URL
-  stock_quantity: number;
   is_active: boolean;
   created_at: Generated<Date>;
   updated_at: Generated<Date>;

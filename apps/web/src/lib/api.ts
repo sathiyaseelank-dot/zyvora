@@ -23,8 +23,30 @@ import type {
  *    mutation therefore has to fetch the token first.
  */
 
+/**
+ * Where the API lives, from the page's point of view.
+ *
+ * Set VITE_API_URL to an absolute URL to call the API cross-origin. Set it
+ * EMPTY (or leave it unset in production) to call the same origin through a
+ * proxy, which is what production does — see vercel.json.
+ *
+ * Why that matters, because it is not obvious and it cost a deployment:
+ * `vercel.app` and `onrender.com` are different registrable domains, so a
+ * cross-origin call is CROSS-SITE. The browser then refuses to send the
+ * SameSite=Lax session and CSRF cookies, every state-changing request 403s,
+ * and login can never work. Verified against the deployed service:
+ *
+ *   cookie + header  -> passes the CSRF guard (500 later, from the database)
+ *   header only      -> 403
+ *
+ * Same-origin removes the problem at the root: the cookies are first-party,
+ * SameSite=Lax behaves, and CORS stops being involved at all.
+ */
+const configured = (import.meta.env.VITE_API_URL ?? '').trim();
+
 const BASE_URL = (
-  import.meta.env.VITE_API_URL ?? 'http://localhost:4000'
+  configured ||
+  (import.meta.env.DEV ? 'http://localhost:4000' : window.location.origin)
 ).replace(/\/$/, '');
 
 export const CSRF_HEADER = 'x-csrf-token';

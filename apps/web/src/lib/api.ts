@@ -285,3 +285,82 @@ export function searchProducts(
     { signal },
   );
 }
+
+/* ------------------------------------------------------------------- cart -- */
+
+/**
+ * Cart types, mirroring apps/api/src/routes/cart.ts.
+ *
+ * Totals arrive computed from the server on every response. Nothing here is
+ * derived in the browser: a client-side subtotal would be a second source of
+ * truth competing with the one that actually settles the order.
+ */
+export interface CartLine {
+  itemId: string;
+  productId: string;
+  name: string;
+  image: string;
+  unitPrice: number;
+  quantity: number;
+  lineTotal: number;
+  available: number;
+}
+
+export interface CartTotals {
+  subtotal: number;
+  shipping: number;
+  discount: number;
+  total: number;
+  itemCount: number;
+  freeShippingThreshold: number;
+  amountToFreeShipping: number;
+}
+
+export interface Cart {
+  lines: CartLine[];
+  totals: CartTotals;
+}
+
+export function fetchCart(signal?: AbortSignal): Promise<Cart> {
+  return request<{ data: Cart }>('/api/cart', { signal }).then((r) => r.data);
+}
+
+export function addCartItem(
+  productId: string,
+  quantity = 1,
+  signal?: AbortSignal,
+): Promise<Cart> {
+  return request<{ data: Cart }>('/api/cart/items', {
+    method: 'POST',
+    body: { productId, quantity },
+    signal,
+  }).then((r) => r.data);
+}
+
+export function updateCartItem(
+  itemId: string,
+  quantity: number,
+  signal?: AbortSignal,
+): Promise<Cart> {
+  return request<{ data: Cart }>(
+    `/api/cart/items/${encodeURIComponent(itemId)}`,
+    {
+      method: 'PATCH',
+      body: { quantity },
+      signal,
+    },
+  ).then((r) => r.data);
+}
+
+export function removeCartItem(
+  itemId: string,
+  signal?: AbortSignal,
+): Promise<Cart> {
+  return request<{ data: Cart }>(
+    `/api/cart/items/${encodeURIComponent(itemId)}`,
+    {
+      method: 'DELETE',
+      signal,
+    },
+  ).then((r) => r.data);
+}

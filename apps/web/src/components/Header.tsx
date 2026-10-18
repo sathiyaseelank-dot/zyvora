@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 
+import { fetchCart } from '../lib/api';
 import { useSession } from '../lib/session';
 
 /**
@@ -123,25 +124,7 @@ export function Header() {
               </button>
             </form>
 
-            {/* Cart: a link, because it navigates. Count is 0 until E5. */}
-            <Link
-              to="/cart"
-              className="relative text-[16px] text-ink-soft transition-colors hover:text-brass-deep"
-            >
-              <span aria-hidden="true">🛒</span>
-              <span className="sr-only">Shopping cart</span>
-              {/*
-                Placeholder badge so the control does not change size when the
-                real count arrives with E5. Hidden from AT: an always-zero
-                cart is not information.
-              */}
-              <span
-                aria-hidden="true"
-                className="absolute -top-2 -right-2 hidden h-4 w-4 place-items-center rounded-full bg-flag-red text-[9px] font-bold text-white"
-              >
-                0
-              </span>
-            </Link>
+            <CartLink />
 
             {status === 'authenticated' && user ? (
               <div className="hidden items-center gap-3 sm:flex">
@@ -241,5 +224,53 @@ export function Header() {
         ) : null}
       </header>
     </>
+  );
+}
+
+/**
+ * Cart link with a live count.
+ *
+ * The count is read from the server rather than held in a shared store,
+ * because the cart belongs to a guest cookie or an account and the server is
+ * the only party that knows which. Polled on navigation only — a header that
+ * refetched on a timer would be a request per visitor per interval.
+ *
+ * A count of 0 renders no badge at all, so the control does not shift as the
+ * basket fills. The badge is `aria-hidden` because the link's own accessible
+ * name states the count.
+ */
+function CartLink() {
+  const location = useLocation();
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchCart(controller.signal)
+      .then((cart) => setCount(cart.totals.itemCount))
+      .catch(() => {
+        // A failed count must not empty a basket that is actually full.
+        // Leave the last known value alone.
+      });
+    return () => controller.abort();
+  }, [location.pathname]);
+
+  return (
+    <Link
+      to="/cart"
+      className="relative text-[16px] text-ink-soft transition-colors hover:text-brass-deep"
+    >
+      <span aria-hidden="true">🛒</span>
+      <span className="sr-only">
+        Shopping cart{count > 0 ? `, ${count} items` : ', empty'}
+      </span>
+      {count > 0 ? (
+        <span
+          aria-hidden="true"
+          className="absolute -top-2 -right-2 grid h-4 min-w-4 place-items-center rounded-full bg-flag-red px-1 text-[9px] font-bold text-white"
+        >
+          {count > 99 ? '99+' : count}
+        </span>
+      ) : null}
+    </Link>
   );
 }

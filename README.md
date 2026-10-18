@@ -54,6 +54,10 @@ npm run migrate   # run pending migrations
 npm run seed      # load sample data
 ```
 
+Production runs on Supabase. The same schema lives in `supabase/migrations/`
+for the GitHub integration to apply — see [SUPABASE.md](./SUPABASE.md) for how
+the two migration runners are kept from conflicting, and for the RLS setup.
+
 ### Development
 
 ```bash

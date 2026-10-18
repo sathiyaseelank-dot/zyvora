@@ -19,6 +19,8 @@ import { auditAdmin } from './audit/audit-log.js';
 import { adminRouter } from './routes/admin.js';
 import { catalogRouter } from './routes/catalog.js';
 import { cartRouter } from './routes/cart.js';
+import { addressRouter } from './routes/address.js';
+import { checkoutRouter } from './routes/checkout.js';
 
 /**
  * Express application assembly — Story ZYV-28.
@@ -103,6 +105,16 @@ export function createApp(): Express {
   // cap on "add to basket" would break a shopper filling one out. The stricter
   // limit belongs on POST /api/orders, which does not exist yet.
   app.use('/api', limiters.api, cartRouter);
+
+  // Addresses (E7 / ZYV-58). requireAuth() is applied inside the router rather
+  // than here, so a route added to it later cannot forget to authenticate —
+  // addresses are street, mobile and name, and there is no guest variant.
+  app.use('/api', limiters.api, addressRouter);
+
+  // Checkout (E7 / ZYV-59). The limiter is applied inside the router: this
+  // endpoint allows guests, since a shopper must see totals and shipping before
+  // being asked to sign in, so it cannot live inside an authenticated group.
+  app.use('/api', checkoutRouter);
 
   // Terminal 404, then the single error handler.
   app.use(notFoundHandler());

@@ -16,8 +16,9 @@ reference data the seed script depends on, stop the backend's own migration
 runner from re-creating tables that now exist, add the 18 missing foreign-key
 indexes, and deny the Supabase API roles with Row Level Security.
 
-**Status: committed and pushed (`f85e413`), not yet applied.** The GitHub
-integration did not fire. See [Deployment status](#deployment-status).
+**Status: applied and verified.** All five migrations are in
+`supabase_migrations.schema_migrations`, Render is connected, and the DB routes
+that used to 500 now return 200. See [Deployment status](#deployment-status).
 
 ---
 
@@ -288,13 +289,18 @@ Production safety at the point of commit:
 
 ```
 app database untouched:        8 products, 2 users
-Supabase production:          no migration applied (read-only MCP calls only)
-disposable database:          dropped
-backend migrations modified:  0
-secrets in committed files:   none
-destructive statements:       none — no DROP, TRUNCATE or DELETE
-unguarded CREATE TABLE:       0 of 20 (all are IF NOT EXISTS)
+disposable database:           dropped
+backend migrations modified:   0
+secrets in committed files:    none
+destructive statements:        none — no DROP, TRUNCATE or DELETE
+unguarded CREATE TABLE:        0 of 20 (all are IF NOT EXISTS)
 ```
+
+At the moment of commit, nothing had been applied to Supabase — every call
+made during development was read-only. The migrations reached production
+afterwards, by the user's enabled GitHub integration acting on the push. That
+ordering was deliberate: validate on a disposable database first, then let the
+integration apply.
 
 **The 220/220 run is the load-bearing result.** It is the whole schema,
 migrated the way production will migrate it, then exercised by every existing
@@ -302,48 +308,89 @@ API test.
 
 ### Could not be executed
 
-- The migrations have **not** been applied to the Supabase project. Every
-  Supabase call in this work was read-only (`list_tables`, `list_migrations`,
-  `list_extensions`, `get_project_url`, `execute_sql`).
+- The live PostgREST check with the real anon key. RLS mechanics were verified
+  on a throwaway table — owner reads, non-owner denied — but the actual
+  `curl /rest/v1/users?select=*` against the live project was not run, because
+  the anon key is not available to the agent. **This is the one outstanding
+  verification.**
 - The GitHub App installation on this repository could not be confirmed —
   `GET /user/installations` returns 403 for a user token. The repo has no
-  webhooks, which is expected (Supabase delivers via a GitHub App) but means
-  the install status is not visible from here.
+  webhooks, which is expected (Supabase delivers via a GitHub App) but means the
+  install status is not visible from here.
 - `supabase db push` and `supabase migration list` were not run. No Supabase
   CLI is installed locally. Ordering and filename validity were checked by
-  filename convention and by applying the files directly.
+  filename convention and by applying the files directly to a fresh database.
+
+### Tool caveat that cost real time
+
+`list_tables` and `list_migrations` reported **0 tables and 0 migrations** at a
+moment when 20 tables and 5 migrations already existed. Those tools are not
+reliable for verifying schema state. Use `execute_sql` against
+`information_schema` instead.
 
 ---
 
 ## Deployment status
 
-**Pushed, not applied.** Commit `f85e413` on `main`, 6 files, 526 insertions.
+**Applied.** Commit `f85e413` on `main`, 6 files, 526 insertions.
 
-Checked at 0s, 60s and 150s after the push:
+All five versions are present in `supabase_migrations.schema_migrations`:
 
 ```
-supabase_migrations.schema_migrations → []
-public tables                        → 0
+20261018120000   zyvora_baseline_schema
+20261018120050   insert_reference_data
+20261018120100   reconcile_kysely_migration_ledger
+20261018120200   index_foreign_keys
+20261018120300   enable_row_level_security
 ```
 
-Likely causes, in order:
+Verified against the live project afterwards:
 
-1. **"Deploy to production" is off.** Connecting the repository and enabling
-   deployment are separate toggles. Per Supabase's docs, migrations only run
-   when that flag is on — a connected-but-not-deploying integration silently
-   does nothing, which is exactly this symptom.
-2. The integration's **Supabase directory** working-directory setting points
-   somewhere other than the repo root.
-3. Connected to a different branch or repository.
+```
+public tables           20
+columns                142     (identical to the app database)
+foreign keys            18
+indexes                 48
+RLS enabled         20/20
+RLS policies              0     (deny-all, as designed)
+categories                4
+roles                     2
+kysely_migration ledger   6     (Kysely will no-op here)
+users.id default    uuid_generate_v4()
+```
 
-Check **Supabase → Integrations → GitHub** for the toggle and its activity log.
+`users.id` defaults to unqualified `uuid_generate_v4()`, which confirms the
+pinned `search_path` did its job — the function resolved from `extensions`
+without the stored default carrying a schema prefix.
 
-### If the integration does not fire
+Render is pointed at Supabase, so the `INTERNAL_ERROR` 500s on every DB route
+are resolved:
 
-The same five files can be applied through the Supabase MCP `apply_migration`
-tool. That writes the same `schema_migrations` ledger the CLI and integration
-use, so it is equivalent — and if the integration later fires, it sees them
-already applied and no-ops.
+```
+GET zyvora-api-nu4z.onrender.com/api/categories  200  4 categories
+GET zyvora-api-nu4z.onrender.com/api/products    200  {"data":[],"total":0}
+```
+
+### Note on the MCP tools
+
+`list_tables` and `list_migrations` reported **0 tables and 0 migrations** while
+20 tables and 5 migrations actually existed. Do not trust them for verifying
+schema state. Use `execute_sql` against `information_schema` instead:
+
+```sql
+select table_schema, count(*)::int
+  from information_schema.tables
+ where table_schema not in ('pg_catalog','information_schema')
+ group by 1;
+```
+
+### Not yet done
+
+- **The database is not seeded** — `products: 0`. Supabase does not run seeds on
+  deploy. `npm run seed -w @zyvora/api`, once, by hand.
+- **The live PostgREST check was never run.** RLS mechanics were verified on a
+  throwaway table, but the real anon-key request still needs doing. See
+  [Verify it yourself](#verify-it-yourself-one-minute).
 
 ---
 

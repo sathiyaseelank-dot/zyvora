@@ -2,6 +2,10 @@
 
 Monorepo for the ZYVORA e-commerce platform. Built with npm workspaces.
 
+> **New here?** Read [HANDOFF.md](./HANDOFF.md) first — verified current state,
+> live URLs (one of which is *not* this project), tooling gotchas, and open
+> items.
+
 ## Structure
 
 ```

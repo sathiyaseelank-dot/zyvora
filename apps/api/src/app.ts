@@ -18,6 +18,7 @@ import { authRouter } from './routes/auth.js';
 import { auditAdmin } from './audit/audit-log.js';
 import { adminRouter } from './routes/admin.js';
 import { catalogRouter } from './routes/catalog.js';
+import { cartRouter } from './routes/cart.js';
 
 /**
  * Express application assembly — Story ZYV-28.
@@ -96,6 +97,12 @@ export function createApp(): Express {
     auditAdmin('admin'),
     adminRouter,
   );
+
+  // Cart (E5). The general api limiter rather than the checkout one: browsing
+  // and editing a basket is not order creation, and putting a 20-per-10-minutes
+  // cap on "add to basket" would break a shopper filling one out. The stricter
+  // limit belongs on POST /api/orders, which does not exist yet.
+  app.use('/api', limiters.api, cartRouter);
 
   // Terminal 404, then the single error handler.
   app.use(notFoundHandler());

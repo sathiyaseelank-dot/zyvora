@@ -83,7 +83,9 @@ routing. Do not "fix" it.
 ## 3. Git state
 
 ```
-e675743  docs(db): how the Supabase schema reaches production     ← HEAD
+e675743  docs: handoff for a fresh agent                         ← (superseded)
+b67af44  docs: handoff for a fresh agent, correct deploy status
+4017ebb  feat(E11): product listing and detail pages (ZYV-105, ZYV-106)
 f85e413  feat(db): Supabase migrations for the zyvora project
 b8ea6ed  chore(deploy): rebuild with VITE_API_URL empty           ← empty commit
 d28bbad  chore(deploy): trigger rebuild with VITE_API_URL cleared ← empty commit
@@ -399,9 +401,57 @@ catalogue to confirm the backend is unaffected.
 Sprint 6 (`id=39`, 2026-12-21 → 2027-01-03) holds ZYV-58, ZYV-59, ZYV-113,
 **ZYV-105**, **ZYV-106**.
 
-ZYV-58, ZYV-59 and ZYV-113 are done and In Review. **ZYV-105** (product listing)
-and **ZYV-106** (product details) are not started — they are now unblocked by a
-working catalogue API. This is the obvious next piece of work.
+All five are now implemented and **In Review**:
+
+| Card | What landed | Commit |
+|---|---|---|
+| ZYV-58, ZYV-59 | Address CRUD + checkout validation | `22af74a` |
+| ZYV-113 | Cart page | `3d51964` |
+| ZYV-105 | Product listing grid — sort, filter, pagination, stock, rating | `4017ebb` |
+| ZYV-106 | Product detail page + its route | `4017ebb` |
+
+Sprint 6 has no unstarted work left. The next epic to pick up is **E4/E5
+continuation or E8–E14** — see `~/Desktop/zyv/REPARENT_PROMPT.md` for the 75
+mis-parented stories.
+
+### Two findings from ZYV-105 worth keeping
+
+**The catalogue API had no behavioural coverage.** `app-wiring.test.ts` asserted
+one thing: that `GET /api/products` returned `200`. That passes just as well with
+the sort inverted, the category filter ignored, the page window never advancing,
+or every product reported as in stock. Four stories were marked complete on the
+strength of that.
+
+**`apps/api/test/catalog.test.ts` must run under `--test-concurrency=1`.** The
+API suites share one database. `cart.test.ts` picks products by `order by id`,
+and UUID ordering is random, so concurrent fixture insertion made it flaky.
+`apps/api/package.json` now pins concurrency to 1.
+
+### Mutation gates
+
+Two scripts, both required to exit 0:
+
+```bash
+apps/api/scripts/mutate-catalog.sh     # 19/19 caught
+apps/web/scripts/mutate-storefront.sh  # 17/17 caught
+```
+
+They exit `2` for a mutant that could not be applied, and treat a mutant that
+only **breaks the build** as inconclusive rather than caught. That check exists
+because a mutant that failed to compile was originally counted as a catch with
+zero failing tests — a green run where nothing executed.
+
+Three survivors were found and closed while writing them, each a real gap:
+availability asserted as "both strings exist" rather than per-card; no test that
+*Previous* is disabled on page one; no test that the added-badge clears.
+
+### Not fabricated, on purpose
+
+ZYV-105 asked for "original price and discount only when accurate" and ZYV-106
+for material, dimensions, colour options, installation instructions,
+compatibility, shipping/returns policy and FAQ. **None of those columns exist.**
+Shipping and returns terms are promises to the customer. Tests assert their
+absence, so invented copy breaks a test rather than shipping silently.
 
 ### P1 — CSRF end-to-end check
 

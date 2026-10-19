@@ -166,7 +166,7 @@ catalogRouter.get(
   asyncHandler(async (_req: Request, res: Response) => {
     const categories = await db
       .selectFrom('categories')
-      .select(['name', 'slug', 'description'])
+      .select(['id', 'name', 'slug', 'description'])
       .orderBy('name', 'asc')
       .execute();
 

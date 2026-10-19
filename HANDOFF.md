@@ -467,16 +467,17 @@ and UUID ordering is random, so concurrent fixture insertion made it flaky.
 
 ### Mutation gates
 
-Four scripts, all required to exit 0:
+Five scripts, all required to exit 0:
 
 ```bash
 apps/api/scripts/mutate-catalog.sh     # 19/19 caught
 apps/web/scripts/mutate-storefront.sh  # 17/17 caught
 apps/api/scripts/mutate-admin.sh       # 6/6 caught (security mutants)
 apps/api/scripts/mutate-order.sh       # 6/6 caught (order security & lifecycle mutants)
+apps/web/scripts/mutate-admin-ui.sh    # 6/6 caught (admin product UI, publish toggle, archive)
 ```
 
-Total: **48/48 mutants caught (100% kill rate across 4 gates)**.
+Total: **54/54 mutants caught (100% kill rate across 5 gates)**.
 
 They exit `2` for a mutant that could not be applied, and treat a mutant that
 only **breaks the build** as inconclusive rather than caught. That check exists
@@ -530,8 +531,9 @@ Full CI gate:
 npm run typecheck && npm run lint && npm run format:check && npm test
 ```
 
-- 308 API tests (`apps/api`), 115 web tests (`apps/web`) — 423 total passed (0 failures)
-- 4 mutation test gates passed: `mutate-storefront.sh` (17/17), `mutate-catalog.sh` (19/19), `mutate-admin.sh` (6/6), `mutate-order.sh` (6/6) — 48/48 mutants caught (0 survived).
+- 308 API tests (`apps/api`), 124 web tests (`apps/web`) — 432 total passed (0 failures)
+- 5 mutation test gates passed: `mutate-storefront.sh` (17/17), `mutate-catalog.sh` (19/19), `mutate-admin.sh` (6/6), `mutate-order.sh` (6/6), `mutate-admin-ui.sh` (6/6) — 54/54 mutants caught (0 survived).
+- `ZYV-92` Admin Product Entry UI fully implemented and verified with comprehensive web test suite (`apps/web/test/admin-products.test.tsx`) and mutation tests (`apps/web/scripts/mutate-admin-ui.sh`). Placed at `In Review`.
 - Sprint 10 (`id: 43`): All 13 cards (`ZYV-112`, `ZYV-108`, `ZYV-100`, `ZYV-102`, `ZYV-103`, `ZYV-104`, `ZYV-107`, `ZYV-111`, `ZYV-114`, `ZYV-115`, `ZYV-117`, `ZYV-118`, `ZYV-119`) verified and placed at `In Review`.
 - CI runs **Node 24** — undici 8 requires ≥22.19
 - vitest 3 → 4 on tinypool (critical)

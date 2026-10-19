@@ -52,6 +52,7 @@ const BASE_URL = (
 export const CSRF_HEADER = 'x-csrf-token';
 
 export interface Category {
+  id?: string;
   name: string;
   slug: string;
   description: string | null;

@@ -410,20 +410,32 @@ curl "https://ycqheltqwgkvxblsqqab.supabase.co/rest/v1/users?select=email,passwo
 Must return `[]` or 401. **Never rows.** Then log into the app and load the
 catalogue to confirm the backend is unaffected.
 
-### P1 — Sprint 6 & Sprint 7
+### P1 — Sprint 6, Sprint 7 & Sprint 8
 
 Sprint 6 (`id=39`, 2026-12-21 → 2027-01-03) holds ZYV-58, ZYV-59, ZYV-113,
 **ZYV-105**, **ZYV-106** (all In Review).
 
-Sprint 7 (`id=40`, 2027-01-04 → 2027-01-17) holds **ZYV-40**, **ZYV-83**, **ZYV-1317**.
+Sprint 7 (`id=40`, 2027-01-04 → 2027-01-17) holds **ZYV-40**, **ZYV-83**, **ZYV-1317** (all In Review).
 
-All three Sprint 7 cards are now implemented and **In Review**:
+Sprint 8 (`id=41`, 2027-01-18 → 2027-01-31) holds Epic E10 (Admin Dashboard, `ZYV-14`) and `ZYV-98` (E11 Admin Dashboard UI).
 
-| Card     | What landed                                                         | Status    |
-| -------- | ------------------------------------------------------------------- | --------- |
-| ZYV-40   | Seed data accuracy review & hardening (genuine automotive imagery)  | In Review |
-| ZYV-83   | Transactional email mailer service & graceful unconfigured fallback | In Review |
-| ZYV-1317 | Client-side SPA Router, navigation guards & 404 NotFoundPage        | In Review |
+All 13 Sprint 8 cards are now implemented and **In Review**:
+
+| Card     | What landed                                                                                 | Status    |
+| -------- | ------------------------------------------------------------------------------------------- | --------- |
+| ZYV-84   | Admin RBAC server-side authorization enforcement (all `/api/admin/*` require role=admin)     | In Review |
+| ZYV-94   | Admin API foundational routing, middleware, error envelopes, and request validation         | In Review |
+| ZYV-92   | Product CRUD, active/archived status filtering, soft-archive deletion                       | In Review |
+| ZYV-80   | Product image management, strict file type validation, ordering & primary photo designation | In Review |
+| ZYV-78   | Price & compare_at_price updates, stock adjustments with audit logging, coupon management    | In Review |
+| ZYV-81   | Order search & filtering, customer joins, pagination                                        | In Review |
+| ZYV-85   | Order status state machine enforcement (valid transition matrix, invalid jump rejection)   | In Review |
+| ZYV-95   | Sales & inventory reporting (summary metrics, top products, low stock, JSON + CSV export)   | In Review |
+| ZYV-86   | Customer account administration, scoped customer data (no password hash leaks), order history| In Review |
+| ZYV-90   | Administrative audit logging and read-only audit log inspection endpoint                    | In Review |
+| ZYV-93   | Storefront banners & editable policy/content blocks (`banners` and `content_blocks` tables)  | In Review |
+| ZYV-91   | DB-scoped payment and refund status management (Razorpay gateway integration deferred)     | In Review |
+| ZYV-98   | Admin dashboard UI (`AdminDashboardPage.tsx`) & `RequireAdmin` route guard in `apps/web`    | In Review |
 
 ### E8–E14 Reparenting Completed
 
@@ -448,11 +460,12 @@ and UUID ordering is random, so concurrent fixture insertion made it flaky.
 
 ### Mutation gates
 
-Two scripts, both required to exit 0:
+Three scripts, all required to exit 0:
 
 ```bash
 apps/api/scripts/mutate-catalog.sh     # 19/19 caught
 apps/web/scripts/mutate-storefront.sh  # 17/17 caught
+apps/api/scripts/mutate-admin.sh       # 6/6 caught (security mutants)
 ```
 
 They exit `2` for a mutant that could not be applied, and treat a mutant that
@@ -507,7 +520,7 @@ Full CI gate:
 npm run typecheck && npm run lint && npm test
 ```
 
-- 220 API tests (`apps/api`), 44 web tests (`apps/web`)
+- 289 API tests (`apps/api`), 91 web tests (`apps/web`) — 380 total passed
 - CI runs **Node 24** — undici 8 requires ≥22.19
 - vitest 3 → 4 on tinypool (critical)
 - CI has an explicit "assert the test suites actually executed" step, which

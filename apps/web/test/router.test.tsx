@@ -286,4 +286,47 @@ describe('App Router Wiring (ZYV-1317)', () => {
       ).toBeInTheDocument();
     });
   });
+
+  it('renders ContactPage on "/contact"', async () => {
+    renderAt('/contact');
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', {
+          level: 1,
+          name: /get in touch with zyvora/i,
+        }),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('renders FaqPage on "/faq"', async () => {
+    renderAt('/faq');
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', {
+          level: 1,
+          name: /frequently asked questions/i,
+        }),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('renders PolicyPage on "/shipping-policy" and "/terms"', async () => {
+    renderAt('/shipping-policy');
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { level: 1, name: /shipping policy/i }),
+      ).toBeInTheDocument();
+    });
+
+    renderAt('/terms');
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', {
+          level: 1,
+          name: /terms and conditions/i,
+        }),
+      ).toBeInTheDocument();
+    });
+  });
 });

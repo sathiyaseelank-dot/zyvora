@@ -40,6 +40,8 @@ export interface Database {
   reviews: ReviewTable;
   coupons: CouponTable;
   audit_logs: AuditLogTable;
+  banners: BannerTable;
+  content_blocks: ContentBlockTable;
 }
 
 // Table type definitions (for Kysely type safety)
@@ -80,6 +82,7 @@ export interface ProductTable {
   description: string;
   category_id: string;
   price: number; // INR rupees, integer
+  compare_at_price: number | null; // Strike-through comparison price (ZYV-78)
   image: string; // single image URL
   is_active: boolean;
   created_at: Generated<Date>;
@@ -245,4 +248,23 @@ export interface AuditLogTable {
   ip_address: string | null;
   user_agent: string | null;
   created_at: Generated<Date>;
+}
+
+export interface BannerTable {
+  id: Generated<string>;
+  title: string;
+  image_url: string;
+  link_url: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
+}
+
+export interface ContentBlockTable {
+  id: Generated<string>;
+  slug: string;
+  title: string;
+  body: string;
+  updated_at: Generated<Date>;
 }

@@ -527,10 +527,12 @@ npm run dev                    # web :5173, api :4000
 Full CI gate:
 
 ```bash
-npm run typecheck && npm run lint && npm test
+npm run typecheck && npm run lint && npm run format:check && npm test
 ```
 
-- 308 API tests (`apps/api`), 99 web tests (`apps/web`) — 407 total passed (0 failures)
+- 308 API tests (`apps/api`), 115 web tests (`apps/web`) — 423 total passed (0 failures)
+- 4 mutation test gates passed: `mutate-storefront.sh` (17/17), `mutate-catalog.sh` (19/19), `mutate-admin.sh` (6/6), `mutate-order.sh` (6/6) — 48/48 mutants caught (0 survived).
+- Sprint 10 (`id: 43`): All 13 cards (`ZYV-112`, `ZYV-108`, `ZYV-100`, `ZYV-102`, `ZYV-103`, `ZYV-104`, `ZYV-107`, `ZYV-111`, `ZYV-114`, `ZYV-115`, `ZYV-117`, `ZYV-118`, `ZYV-119`) verified and placed at `In Review`.
 - CI runs **Node 24** — undici 8 requires ≥22.19
 - vitest 3 → 4 on tinypool (critical)
 - CI has an explicit "assert the test suites actually executed" step, which

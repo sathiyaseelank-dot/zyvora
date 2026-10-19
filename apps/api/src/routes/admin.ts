@@ -35,7 +35,18 @@ adminRouter.get(
 
     let query = db
       .selectFrom('audit_logs')
-      .selectAll()
+      .select([
+        'id',
+        'user_id as userId',
+        'action',
+        'entity_type as entityType',
+        'entity_id as entityId',
+        'old_values as oldValues',
+        'new_values as newValues',
+        'ip_address as ipAddress',
+        'user_agent as userAgent',
+        'created_at as createdAt',
+      ])
       .orderBy('created_at', 'desc');
 
     if (action) query = query.where('action', '=', action);
@@ -59,7 +70,18 @@ adminRouter.get(
 
     const row = await db
       .selectFrom('audit_logs')
-      .selectAll()
+      .select([
+        'id',
+        'user_id as userId',
+        'action',
+        'entity_type as entityType',
+        'entity_id as entityId',
+        'old_values as oldValues',
+        'new_values as newValues',
+        'ip_address as ipAddress',
+        'user_agent as userAgent',
+        'created_at as createdAt',
+      ])
       .where('id', '=', id)
       .executeTakeFirst();
 

@@ -20,13 +20,13 @@ packages/   ui, config, types (shared)
 
 Deployed: frontend on **Vercel**, API on **Render**, database on **Supabase**.
 
-| | |
-|---|---|
-| Repo | `https://github.com/sathiyaseelank-dot/zyvora` |
-| Branch | `main` — production branch, direct deploys |
-| Frontend | `https://zyvora-omega.vercel.app` |
-| API | `https://zyvora-api-nu4z.onrender.com` |
-| Supabase project | `ycqheltqwgkvxblsqqab` |
+|                  |                                                |
+| ---------------- | ---------------------------------------------- |
+| Repo             | `https://github.com/sathiyaseelank-dot/zyvora` |
+| Branch           | `main` — production branch, direct deploys     |
+| Frontend         | `https://zyvora-omega.vercel.app`              |
+| API              | `https://zyvora-api-nu4z.onrender.com`         |
+| Supabase project | `ycqheltqwgkvxblsqqab`                         |
 
 ### Live URLs — read this, it is a trap
 
@@ -118,7 +118,7 @@ Reordering breaks it.
 ## 4. Supabase migrations — the process, end to end
 
 This is the most recent substantial piece of work, so it is documented in full.
-`SUPABASE.md` covers *why*; this covers *how*, step by step.
+`SUPABASE.md` covers _why_; this covers _how_, step by step.
 
 ### 4.1 Why the files exist
 
@@ -132,13 +132,13 @@ client library was introduced.
 
 `supabase/migrations/`, in application order:
 
-| Version | File | Purpose |
-|---|---|---|
-| `20261018120000` | `zyvora_baseline_schema.sql` | 18 tables, dependency-ordered, + `set search_path` |
-| `20261018120050` | `insert_reference_data.sql` | 2 roles, 4 categories |
-| `20261018120100` | `reconcile_kysely_migration_ledger.sql` | marks Kysely 001–006 applied |
-| `20261018120200` | `index_foreign_keys.sql` | 18 indexes on unindexed FK columns |
-| `20261018120300` | `enable_row_level_security.sql` | RLS on all 20, zero policies |
+| Version          | File                                    | Purpose                                            |
+| ---------------- | --------------------------------------- | -------------------------------------------------- |
+| `20261018120000` | `zyvora_baseline_schema.sql`            | 18 tables, dependency-ordered, + `set search_path` |
+| `20261018120050` | `insert_reference_data.sql`             | 2 roles, 4 categories                              |
+| `20261018120100` | `reconcile_kysely_migration_ledger.sql` | marks Kysely 001–006 applied                       |
+| `20261018120200` | `index_foreign_keys.sql`                | 18 indexes on unindexed FK columns                 |
+| `20261018120300` | `enable_row_level_security.sql`         | RLS on all 20, zero policies                       |
 
 ### 4.3 The method, so you can repeat it
 
@@ -152,13 +152,13 @@ select table_name, column_name, data_type, is_nullable, column_default
  where table_schema='public' order by 1;
 ```
 
-Hand-transcribing migration files produces a schema that is *nearly* right.
+Hand-transcribing migration files produces a schema that is _nearly_ right.
 
 **Step 2 — check the target is actually empty first.**
 
 ```js
-await tools["supabase"].list_tables({ schemas: ["public"], verbose: false });
-await tools["supabase"].list_migrations({});
+await tools['supabase'].list_tables({ schemas: ['public'], verbose: false });
+await tools['supabase'].list_migrations({});
 ```
 
 Both returned empty, confirming a fresh database. **Do not assume — a
@@ -190,7 +190,7 @@ unguarded `CREATE TABLE`, and confirm the app database is untouched.
 Three defects survived review and were found by executing:
 
 **a) Migration 001 inserts reference data, not just schema.** The seed script
-only *reads* categories to resolve `category_id`; it never inserts them. A
+only _reads_ categories to resolve `category_id`; it never inserts them. A
 schema-only database gave `categories: 0 rows` and the seed died with a
 misleading error:
 
@@ -230,7 +230,7 @@ genuinely exists. Verified: `migrations re-run: 0`, exit 0, 6 ledger rows.
 ### 4.6 RLS — enabled, zero policies, keep it that way
 
 Every table in `public` is reachable via PostgREST with the project's `anon`
-key, which is *meant* to be public. **The key grants no rights; RLS grants
+key, which is _meant_ to be public. **The key grants no rights; RLS grants
 rights.** Without RLS:
 
 ```
@@ -244,10 +244,10 @@ deliberately not used.
 
 Verified on a throwaway table with RLS on and no policies:
 
-| connection | result |
-|---|---|
-| owner | reads the row — backend works |
-| non-owner | reads nothing |
+| connection | result                        |
+| ---------- | ----------------------------- |
+| owner      | reads the row — backend works |
+| non-owner  | reads nothing                 |
 
 **If it ever breaks** (symptom: `permission denied for table users`), the fix is
 `alter role <pooler_role> bypassrls;` — **never** disable RLS, **never** add a
@@ -328,10 +328,24 @@ Databases: `zyvora` (app-shaped, has all 6 migrations + seed) and `postgres`.
 
 ### Jira
 
-- Authenticate with **Basic** (email + API token). `Bearer` returns 401.
+- Authenticate with **Basic** (email + API token). `Bearer` returns 401 — a Jira
+  API token is not a personal access token, and is only accepted as the password
+  half of Basic auth.
 - **Transitions differ per source status** — always `discover` first, never
-  assume a transition id.
-- Board id `36`. Sprint 4 `id=5`, Sprint 5 `id=38`, Sprint 6 `id=39`.
+  assume a transition id. From *To Do* the only move is `2` (Start progress) →
+  In Progress; from there `3` (Submit for review) → In Review, `10` (Pull Back)
+  → To Do. There is no direct To Do → In Review.
+- A transition's **name** is not the **status it leads to**.
+  `transitionJiraIssue` takes an id.
+- Board id `36`, type `simple` (team-managed). Sprints therefore live in the
+  **Agile API** (`/rest/agile/1.0/sprint`), not core REST —
+  `/rest/api/3/sprint` does not exist.
+- **In Review has statusCategory `new`**, the same as To Do. A category-based
+  filter will not separate them.
+- `getGraphObject` with an ARI returns an empty array; pass a browse URL. The
+  body is under `.data.data.objects[].raw`.
+- Full write-up, with the exact calls and what was verified versus recorded:
+  see [JIRA_API.md](./JIRA_API.md).
 - Authoritative mappings: `JIRA_MAP.md`, `STORIES.md` (in `~/Desktop/zyv/`, not
   the repo).
 
@@ -403,12 +417,12 @@ Sprint 6 (`id=39`, 2026-12-21 → 2027-01-03) holds ZYV-58, ZYV-59, ZYV-113,
 
 All five are now implemented and **In Review**:
 
-| Card | What landed | Commit |
-|---|---|---|
-| ZYV-58, ZYV-59 | Address CRUD + checkout validation | `22af74a` |
-| ZYV-113 | Cart page | `3d51964` |
-| ZYV-105 | Product listing grid — sort, filter, pagination, stock, rating | `4017ebb` |
-| ZYV-106 | Product detail page + its route | `4017ebb` |
+| Card           | What landed                                                    | Commit    |
+| -------------- | -------------------------------------------------------------- | --------- |
+| ZYV-58, ZYV-59 | Address CRUD + checkout validation                             | `22af74a` |
+| ZYV-113        | Cart page                                                      | `3d51964` |
+| ZYV-105        | Product listing grid — sort, filter, pagination, stock, rating | `4017ebb` |
+| ZYV-106        | Product detail page + its route                                | `4017ebb` |
 
 Sprint 6 has no unstarted work left. The next epic to pick up is **E4/E5
 continuation or E8–E14** — see `~/Desktop/zyv/REPARENT_PROMPT.md` for the 75
@@ -443,7 +457,7 @@ zero failing tests — a green run where nothing executed.
 
 Three survivors were found and closed while writing them, each a real gap:
 availability asserted as "both strings exist" rather than per-card; no test that
-*Previous* is disabled on page one; no test that the added-badge clears.
+_Previous_ is disabled on page one; no test that the added-badge clears.
 
 ### Not fabricated, on purpose
 
@@ -503,17 +517,17 @@ npm run typecheck && npm run lint && npm test
 
 ## 9. Files worth reading first
 
-| Path | Why |
-|---|---|
-| `SUPABASE.md` | Why the migrations look the way they do |
-| `supabase/migrations/*.sql` | Each file's header explains its reasoning |
-| `apps/api/src/app.ts` | CORS + router mount order |
-| `apps/api/src/auth/session.ts` | `baseCookie()`, `sameSite: 'lax'` |
-| `apps/api/src/config/env.ts` | `CORS_ORIGINS`, `DATABASE_URL`, secrets |
-| `apps/web/vercel.json` | The production proxy |
-| `apps/web/src/lib/api.ts` | Same-origin API base URL |
-| `apps/api/src/db/seeds/seed.ts` | Reads categories; ZYV-40 photos |
-| `.github/workflows/ci.yml` | Node 24 + the test-count gate |
+| Path                            | Why                                       |
+| ------------------------------- | ----------------------------------------- |
+| `SUPABASE.md`                   | Why the migrations look the way they do   |
+| `supabase/migrations/*.sql`     | Each file's header explains its reasoning |
+| `apps/api/src/app.ts`           | CORS + router mount order                 |
+| `apps/api/src/auth/session.ts`  | `baseCookie()`, `sameSite: 'lax'`         |
+| `apps/api/src/config/env.ts`    | `CORS_ORIGINS`, `DATABASE_URL`, secrets   |
+| `apps/web/vercel.json`          | The production proxy                      |
+| `apps/web/src/lib/api.ts`       | Same-origin API base URL                  |
+| `apps/api/src/db/seeds/seed.ts` | Reads categories; ZYV-40 photos           |
+| `.github/workflows/ci.yml`      | Node 24 + the test-count gate             |
 
 ---
 

@@ -53,7 +53,11 @@ interface Detail {
   rating: { average: number; count: number } | null;
 }
 
-export function ProductDetailPage({ onTitle }: { onTitle: (t: string) => void }) {
+export function ProductDetailPage({
+  onTitle,
+}: {
+  onTitle: (t: string) => void;
+}) {
   const { id } = useParams<{ id: string }>();
 
   const [product, setProduct] = useState<Detail | null>(null);
@@ -128,7 +132,10 @@ export function ProductDetailPage({ onTitle }: { onTitle: (t: string) => void })
         </p>
       ) : !product ? (
         <div className="grid gap-10 lg:grid-cols-2">
-          <div className="aspect-4/5 animate-pulse bg-paper-sunk" aria-hidden="true" />
+          <div
+            className="aspect-4/5 animate-pulse bg-paper-sunk"
+            aria-hidden="true"
+          />
           <div className="space-y-4">
             <div className="h-6 w-2/3 animate-pulse bg-paper-sunk" />
             <div className="h-4 w-1/3 animate-pulse bg-paper-sunk" />

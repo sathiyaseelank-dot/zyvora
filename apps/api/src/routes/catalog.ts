@@ -237,7 +237,9 @@ catalogRouter.get(
     const ratings = await verifiedRatings(rows.map((r) => r.id));
 
     res.json({
-      data: rows.map((row) => toSummary(row, { inStock: sellable(row) }, ratings)),
+      data: rows.map((row) =>
+        toSummary(row, { inStock: sellable(row) }, ratings),
+      ),
       meta: {
         page,
         pageSize,
@@ -290,7 +292,9 @@ catalogRouter.get(
     const ratings = await verifiedRatings(rows.map((r) => r.id));
 
     res.json({
-      data: rows.map((row) => toSummary(row, { inStock: sellable(row) }, ratings)),
+      data: rows.map((row) =>
+        toSummary(row, { inStock: sellable(row) }, ratings),
+      ),
       meta: { page, pageSize, query: q },
     });
   }),

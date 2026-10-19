@@ -8,10 +8,10 @@ and move cards.
 This document mixes things I verified with things I am taking on trust, and
 collapsing the two would be worse than useless. Every claim is marked:
 
-| Mark | Meaning |
-|---|---|
-| ✅ **VERIFIED** | I ran this on 2026-10-19 and it returned this |
-| 📋 **RECORDED** | From the earlier session that created the sprints. Not re-run here |
+| Mark                 | Meaning                                                                       |
+| -------------------- | ----------------------------------------------------------------------------- |
+| ✅ **VERIFIED**      | I ran this on 2026-10-19 and it returned this                                 |
+| 📋 **RECORDED**      | From the earlier session that created the sprints. Not re-run here            |
 | ⚠️ **RECONSTRUCTED** | Standard Jira REST, written from documentation. **Not executed in this repo** |
 
 The honest headline: **I did not create any sprint in the session that produced
@@ -30,7 +30,7 @@ first call in any session resolves the site:
 
 ```js
 // Code Mode, inside this session
-const r = await tools["atlassian"].getAccessibleAtlassianResources();
+const r = await tools['atlassian'].getAccessibleAtlassianResources();
 ```
 
 ✅ Returns:
@@ -47,7 +47,7 @@ top-level argument; it is never silently auto-resolved.
 ✅ Identity:
 
 ```js
-await tools["atlassian"].atlassianUserInfo();
+await tools['atlassian'].atlassianUserInfo();
 // accountId  712020:9023eaaf-d344-406f-8d7d-bab0b503f41f
 ```
 
@@ -83,11 +83,11 @@ not in this repository.
 That word matters. `simple` is Jira's team-managed project type, and it changes
 the API surface:
 
-| | Team-managed (`simple`) | Company-managed |
-|---|---|---|
-| Workflow | Fixed, 4 statuses | Per-project, arbitrary |
-| Sprint endpoints | **Agile API** | Core REST works too |
-| Issue search | No JQL | Full JQL |
+|                  | Team-managed (`simple`) | Company-managed        |
+| ---------------- | ----------------------- | ---------------------- |
+| Workflow         | Fixed, 4 statuses       | Per-project, arbitrary |
+| Sprint endpoints | **Agile API**           | Core REST works too    |
+| Issue search     | No JQL                  | Full JQL               |
 
 Because board 36 is team-managed, **sprints do not exist in core REST at all.**
 `POST /rest/api/3/sprint` does not exist. Sprints are an Agile concept and live
@@ -176,10 +176,10 @@ transition id, not a status name.
 Reading what is actually available, from **To Do**:
 
 ```js
-await tools["atlassian"].executeRead({
-  name: "listJiraIssueTransitions",
-  cloudId: "38635099-1a5d-498d-9449-0d6a4a02063c",
-  inputs: { issueIdOrKey: "ZYV-105" },
+await tools['atlassian'].executeRead({
+  name: 'listJiraIssueTransitions',
+  cloudId: '38635099-1a5d-498d-9449-0d6a4a02063c',
+  inputs: { issueIdOrKey: 'ZYV-105' },
 });
 ```
 
@@ -205,15 +205,19 @@ So the full walk used:
 
 ```js
 // hop 1
-await tools["atlassian"]["transitionJiraIssue"]({
-  cloudId, issueIdOrKey: "ZYV-105", transitionId: "2",
-});  // → statusName: "In Progress"
+await tools['atlassian']['transitionJiraIssue']({
+  cloudId,
+  issueIdOrKey: 'ZYV-105',
+  transitionId: '2',
+}); // → statusName: "In Progress"
 
 // re-discover: the option list is different now
 // hop 2
-await tools["atlassian"]["transitionJiraIssue"]({
-  cloudId, issueIdOrKey: "ZYV-105", transitionId: "3",
-});  // → statusName: "In Review"
+await tools['atlassian']['transitionJiraIssue']({
+  cloudId,
+  issueIdOrKey: 'ZYV-105',
+  transitionId: '3',
+}); // → statusName: "In Review"
 ```
 
 ✅ Both ZYV-105 and ZYV-106 confirmed at `In Review`, status id `10056`, read
@@ -247,12 +251,12 @@ category-based query will not separate the two. Filter on status name or id.
 
 📋 The status ladder, and what each one actually means here:
 
-| Status | Means |
-|---|---|
-| To Do | Not started |
-| In Progress | Being worked on |
+| Status        | Means                                                         |
+| ------------- | ------------------------------------------------------------- |
+| To Do         | Not started                                                   |
+| In Progress   | Being worked on                                               |
 | **In Review** | Implemented and self-verified. **Where finished work lands.** |
-| Done | Independently reviewed and accepted |
+| Done          | Independently reviewed and accepted                           |
 
 Cards land at **In Review**, not Done, because no independent review exists.
 Developer, reviewer and tester roles were all self-performed on every epic, so

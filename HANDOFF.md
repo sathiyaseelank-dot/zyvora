@@ -332,7 +332,7 @@ Databases: `zyvora` (app-shaped, has all 6 migrations + seed) and `postgres`.
   API token is not a personal access token, and is only accepted as the password
   half of Basic auth.
 - **Transitions differ per source status** — always `discover` first, never
-  assume a transition id. From *To Do* the only move is `2` (Start progress) →
+  assume a transition id. From _To Do_ the only move is `2` (Start progress) →
   In Progress; from there `3` (Submit for review) → In Review, `10` (Pull Back)
   → To Do. There is no direct To Do → In Review.
 - A transition's **name** is not the **status it leads to**.
@@ -410,23 +410,28 @@ curl "https://ycqheltqwgkvxblsqqab.supabase.co/rest/v1/users?select=email,passwo
 Must return `[]` or 401. **Never rows.** Then log into the app and load the
 catalogue to confirm the backend is unaffected.
 
-### P1 — Sprint 6
+### P1 — Sprint 6 & Sprint 7
 
 Sprint 6 (`id=39`, 2026-12-21 → 2027-01-03) holds ZYV-58, ZYV-59, ZYV-113,
-**ZYV-105**, **ZYV-106**.
+**ZYV-105**, **ZYV-106** (all In Review).
 
-All five are now implemented and **In Review**:
+Sprint 7 (`id=40`, 2027-01-04 → 2027-01-17) holds **ZYV-40**, **ZYV-83**, **ZYV-1317**.
 
-| Card           | What landed                                                    | Commit    |
-| -------------- | -------------------------------------------------------------- | --------- |
-| ZYV-58, ZYV-59 | Address CRUD + checkout validation                             | `22af74a` |
-| ZYV-113        | Cart page                                                      | `3d51964` |
-| ZYV-105        | Product listing grid — sort, filter, pagination, stock, rating | `4017ebb` |
-| ZYV-106        | Product detail page + its route                                | `4017ebb` |
+All three Sprint 7 cards are now implemented and **In Review**:
 
-Sprint 6 has no unstarted work left. The next epic to pick up is **E4/E5
-continuation or E8–E14** — see `~/Desktop/zyv/REPARENT_PROMPT.md` for the 75
-mis-parented stories.
+| Card     | What landed                                                         | Status    |
+| -------- | ------------------------------------------------------------------- | --------- |
+| ZYV-40   | Seed data accuracy review & hardening (genuine automotive imagery)  | In Review |
+| ZYV-83   | Transactional email mailer service & graceful unconfigured fallback | In Review |
+| ZYV-1317 | Client-side SPA Router, navigation guards & 404 NotFoundPage        | In Review |
+
+### E8–E14 Reparenting Completed
+
+All 75 mis-parented stories across E8–E14 were reparented to their authoritative
+epics per `JIRA_MAP.md`. Verification confirmed zero orphaned stories remain across
+the project, and all 14 epics match their exact target story counts (E1: 6, E2: 7,
+E3: 7, E4: 7, E5: 7, E6: 9, E7: 9, E8: 10, E9: 7, E10: 12, E11: 14, E12: 11,
+E13: 15, E14: 7).
 
 ### Two findings from ZYV-105 worth keeping
 
@@ -474,14 +479,9 @@ header-only returns 403. A 500 from the DB meant CSRF had already passed.
 
 ### P2 — known defects
 
-- **ZYV-83** — no mailer. Password reset has no production path.
-- **ZYV-40** — invented stock photos (see above).
 - `TRUST_PROXY` topology — undecided human decision.
 - **Vercel builds cancel** — undiagnosed.
-- **Sprints 1–3 still `active`** with ~19 stuck cards.
-- The router has no Jira card.
-- `~/Desktop/zyv/REPARENT_PROMPT.md` — ready-to-run prompt for 75
-  mis-parented E8–E14 stories.
+- Sprints 1 and 2 closed; Sprint 3 is active.
 - Razorpay keys not configured.
 
 ---

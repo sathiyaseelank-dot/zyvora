@@ -218,7 +218,9 @@ describe('ZYV-106 product detail', () => {
 
     await screen.findByText(BASE.name);
     expect(
-      screen.getAllByRole('link').some((l) => l.getAttribute('href') === '/catalog'),
+      screen
+        .getAllByRole('link')
+        .some((l) => l.getAttribute('href') === '/catalog'),
     ).toBe(true);
   });
 
@@ -239,8 +241,6 @@ describe('ZYV-106 product detail', () => {
       </MemoryRouter>,
     );
 
-    await waitFor(() =>
-      expect(titles).toContain(`${BASE.name} — ZYVORA`),
-    );
+    await waitFor(() => expect(titles).toContain(`${BASE.name} — ZYVORA`));
   });
 });

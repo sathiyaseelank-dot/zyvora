@@ -320,7 +320,9 @@ export function CatalogPage() {
                       {product.category}
                     </p>
                     <div className="flex items-start justify-between gap-3">
-                      <h2 className="font-display text-[17px]">{product.name}</h2>
+                      <h2 className="font-display text-[17px]">
+                        {product.name}
+                      </h2>
                       <p className="shrink-0 text-[13px] font-semibold whitespace-nowrap">
                         {rupees(product.price)}
                       </p>

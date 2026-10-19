@@ -7,9 +7,12 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-      '@zyvora/ui': path.resolve(__dirname, '../../packages/ui/src'),
-      '@zyvora/types': path.resolve(__dirname, '../../packages/types/src'),
+      '@': path.resolve(import.meta.dirname, './src'),
+      '@zyvora/ui': path.resolve(import.meta.dirname, '../../packages/ui/src'),
+      '@zyvora/types': path.resolve(
+        import.meta.dirname,
+        '../../packages/types/src',
+      ),
     },
   },
 });

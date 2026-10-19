@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
@@ -65,7 +72,9 @@ const meta = {
   sort: 'name_asc' as const,
 };
 
-function mockApi(over: { data?: typeof MOCK; meta?: Partial<typeof meta> } = {}) {
+function mockApi(
+  over: { data?: typeof MOCK; meta?: Partial<typeof meta> } = {},
+) {
   vi.spyOn(api, 'fetchCategories').mockResolvedValue(CATEGORIES);
   vi.spyOn(api, 'fetchProducts').mockResolvedValue({
     data: over.data ?? MOCK,
@@ -162,12 +171,14 @@ describe('ZYV-105 catalogue grid', () => {
     renderPage();
 
     await screen.findByText('Out of stock');
-    const buttons = screen.getAllByRole('button', { name: /add to cart|sold out/i });
+    const buttons = screen.getAllByRole('button', {
+      name: /add to cart|sold out/i,
+    });
     expect(buttons).toHaveLength(2);
     // Exactly one is available.
-    expect(buttons.filter((b) => !(b as HTMLButtonElement).disabled)).toHaveLength(
-      1,
-    );
+    expect(
+      buttons.filter((b) => !(b as HTMLButtonElement).disabled),
+    ).toHaveLength(1);
     expect(
       buttons.find((b) => b.textContent?.includes('Sold out')),
     ).toBeTruthy();
@@ -190,9 +201,7 @@ describe('ZYV-105 catalogue grid', () => {
 
     // Two arguments, not three: the page passes no AbortSignal for an action the
     // shopper initiated, so requiring one asserted against the wrong contract.
-    await waitFor(() =>
-      expect(spy).toHaveBeenCalledWith(IN_STOCK_RATED.id, 1),
-    );
+    await waitFor(() => expect(spy).toHaveBeenCalledWith(IN_STOCK_RATED.id, 1));
   });
 
   it('links each card to its detail page', async () => {
@@ -205,7 +214,9 @@ describe('ZYV-105 catalogue grid', () => {
       .filter((l) => l.getAttribute('href')?.startsWith('/products/'));
     expect(links.length).toBeGreaterThanOrEqual(2);
     expect(
-      links.some((l) => l.getAttribute('href') === `/products/${IN_STOCK_RATED.id}`),
+      links.some(
+        (l) => l.getAttribute('href') === `/products/${IN_STOCK_RATED.id}`,
+      ),
     ).toBe(true);
   });
 
@@ -215,9 +226,9 @@ describe('ZYV-105 catalogue grid', () => {
     renderPage('/catalog?sort=price_desc');
 
     await waitFor(() =>
-      expect(
-        spy.mock.calls.some((c) => c[0]?.sort === 'price_desc'),
-      ).toBe(true),
+      expect(spy.mock.calls.some((c) => c[0]?.sort === 'price_desc')).toBe(
+        true,
+      ),
     );
   });
 
@@ -238,9 +249,9 @@ describe('ZYV-105 catalogue grid', () => {
     renderPage('/catalog?category=bike-flags');
 
     await waitFor(() =>
-      expect(
-        spy.mock.calls.some((c) => c[0]?.category === 'bike-flags'),
-      ).toBe(true),
+      expect(spy.mock.calls.some((c) => c[0]?.category === 'bike-flags')).toBe(
+        true,
+      ),
     );
   });
 

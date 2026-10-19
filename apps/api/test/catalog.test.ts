@@ -72,7 +72,11 @@ const ORDERED = [
 
 const ORDERED_NAMES = ORDERED.map((f) => f.name);
 
-async function idFor(table: 'categories' | 'roles', column: string, value: string) {
+async function idFor(
+  table: 'categories' | 'roles',
+  column: string,
+  value: string,
+) {
   const query =
     table === 'categories'
       ? db.selectFrom('categories').select('id').where('slug', '=', value)
@@ -193,7 +197,10 @@ before(async () => {
 
 after(async () => {
   // Reviews, inventory and carts all cascade from the product.
-  await db.deleteFrom('products').where('id', 'in', createdProductIds).execute();
+  await db
+    .deleteFrom('products')
+    .where('id', 'in', createdProductIds)
+    .execute();
   await db.deleteFrom('users').where('email', '=', REVIEWER_EMAIL).execute();
   await client.close();
   await db.destroy();
@@ -222,7 +229,10 @@ describe('catalogue: filtering', () => {
 
   it('rejects an unknown category instead of silently ignoring it', async () => {
     // An ignored filter returns the whole catalogue and looks like success.
-    assert.equal((await getJson(client, '/api/products?category=nope')).status, 400);
+    assert.equal(
+      (await getJson(client, '/api/products?category=nope')).status,
+      400,
+    );
   });
 });
 
@@ -267,19 +277,26 @@ describe('catalogue: sorting', () => {
 
   it('defaults to name_asc when no sort is given', async () => {
     const implicit = await list('?category=gift-sets&pageSize=100');
-    const explicit = await list('?category=gift-sets&sort=name_asc&pageSize=100');
+    const explicit = await list(
+      '?category=gift-sets&sort=name_asc&pageSize=100',
+    );
     assert.equal(implicit.meta.sort, 'name_asc');
     assert.deepEqual(fixtureNames(implicit), fixtureNames(explicit));
   });
 
   it('rejects an unknown sort rather than falling back silently', async () => {
-    assert.equal((await getJson(client, '/api/products?sort=sideways')).status, 400);
+    assert.equal(
+      (await getJson(client, '/api/products?sort=sideways')).status,
+      400,
+    );
   });
 });
 
 describe('catalogue: pagination', () => {
   it('advances the window without repeating a product', async () => {
-    const first = await list('?category=gift-sets&sort=name_asc&pageSize=3&page=1');
+    const first = await list(
+      '?category=gift-sets&sort=name_asc&pageSize=3&page=1',
+    );
     const second = await list(
       '?category=gift-sets&sort=name_asc&pageSize=3&page=2',
     );
@@ -313,7 +330,10 @@ describe('catalogue: pagination', () => {
   });
 
   it('rejects an oversized pageSize and a page below one', async () => {
-    assert.equal((await getJson(client, '/api/products?pageSize=101')).status, 400);
+    assert.equal(
+      (await getJson(client, '/api/products?pageSize=101')).status,
+      400,
+    );
     assert.equal((await getJson(client, '/api/products?page=0')).status, 400);
   });
 
@@ -437,11 +457,7 @@ describe('catalogue: ratings', () => {
     const delta = body.data.find((p) => p.name === `${PREFIX}Delta`);
     const cedar = body.data.find((p) => p.name === `${PREFIX}Cedar`);
     assert.deepEqual(delta?.rating, { average: 4.3, count: 3 });
-    assert.equal(
-      cedar?.rating,
-      null,
-      'one product rating leaked onto another',
-    );
+    assert.equal(cedar?.rating, null, 'one product rating leaked onto another');
   });
 });
 
@@ -484,11 +500,17 @@ describe('catalogue: detail', () => {
       .select('id')
       .where('name', '=', `${PREFIX}Hidden`)
       .executeTakeFirstOrThrow();
-    assert.equal((await getJson(client, `/api/products/${hidden.id}`)).status, 404);
+    assert.equal(
+      (await getJson(client, `/api/products/${hidden.id}`)).status,
+      404,
+    );
   });
 
   it('400s a non-UUID id', async () => {
-    assert.equal((await getJson(client, '/api/products/not-a-uuid')).status, 400);
+    assert.equal(
+      (await getJson(client, '/api/products/not-a-uuid')).status,
+      400,
+    );
   });
 
   it('carries the same rating the listing showed', async () => {
@@ -504,19 +526,28 @@ describe('catalogue: detail', () => {
 
 describe('catalogue: search', () => {
   it('matches on name', async () => {
-    const res = await getJson<ListBody>(client, '/api/products/search?q=Aardvark');
+    const res = await getJson<ListBody>(
+      client,
+      '/api/products/search?q=Aardvark',
+    );
     assert.equal(res.status, 200);
     assert.ok(res.body.data.some((p) => p.name.includes('Aardvark')));
   });
 
   it('matches on description as well as name', async () => {
-    const res = await getJson<ListBody>(client, '/api/products/search?q=Fixture');
+    const res = await getJson<ListBody>(
+      client,
+      '/api/products/search?q=Fixture',
+    );
     assert.equal(res.status, 200);
     assert.ok(res.body.data.length > 0);
   });
 
   it('does not match inactive products', async () => {
-    const res = await getJson<ListBody>(client, '/api/products/search?q=Hidden');
+    const res = await getJson<ListBody>(
+      client,
+      '/api/products/search?q=Hidden',
+    );
     assert.equal(res.status, 200);
     assert.ok(!res.body.data.some((p) => p.name === `${PREFIX}Hidden`));
   });
@@ -531,7 +562,10 @@ describe('catalogue: search', () => {
   });
 
   it('rejects an empty query', async () => {
-    assert.equal((await getJson(client, '/api/products/search?q=')).status, 400);
+    assert.equal(
+      (await getJson(client, '/api/products/search?q=')).status,
+      400,
+    );
   });
 });
 
@@ -542,13 +576,18 @@ describe('catalogue: categories', () => {
       '/api/categories',
     );
     assert.equal(res.status, 200);
-    assert.deepEqual(
-      res.body.data.map((c) => c.slug).sort(),
-      ['accessories', 'bike-flags', 'car-flags', 'gift-sets'],
-    );
+    assert.deepEqual(res.body.data.map((c) => c.slug).sort(), [
+      'accessories',
+      'bike-flags',
+      'car-flags',
+      'gift-sets',
+    ]);
   });
 
   it('serves the catalogue without a session', async () => {
-    assert.equal((await getJson(client, '/api/products?pageSize=1')).status, 200);
+    assert.equal(
+      (await getJson(client, '/api/products?pageSize=1')).status,
+      200,
+    );
   });
 });

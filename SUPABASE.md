@@ -96,12 +96,15 @@ The first draft of the baseline created every table correctly and applied
 cleanly to an empty database. It was still wrong.
 
 Migration 001 does two things: it creates the schema, and it **inserts** the two
-roles and four categories. The seed script only *reads* categories to resolve
+roles and four categories. The seed script only _reads_ categories to resolve
 `category_id` for every product — it never inserts them:
 
 ```ts
 // apps/api/src/db/seeds/seed.ts
-const categories = await db.selectFrom('categories').select(['id', 'slug']).execute();
+const categories = await db
+  .selectFrom('categories')
+  .select(['id', 'slug'])
+  .execute();
 const catMap = new Map(categories.map((c) => [c.slug, c.id]));
 ```
 
@@ -163,8 +166,8 @@ fn_schema     = extensions
 So an unqualified `uuid_generate_v4()` resolves — but only because the session
 `search_path` happens to include `extensions`. That is an incidental property of
 the session default, not a guarantee. A migration runner with a different
-`search_path` would fail halfway through with *"function uuid_generate_v4() does
-not exist"*, leaving a half-built schema on the production database.
+`search_path` would fail halfway through with _"function uuid_generate_v4() does
+not exist"_, leaving a half-built schema on the production database.
 
 Fixed by pinning it in the baseline:
 
@@ -231,9 +234,9 @@ so `postgres` will own the tables, and the backend's `DATABASE_URL` connects as
 Verified rather than assumed, on a throwaway table with RLS on and zero
 policies:
 
-| connection | result |
-|---|---|
-| owner (`inkyank-08`) | `reads: hunter2` — backend works |
+| connection            | result                                  |
+| --------------------- | --------------------------------------- |
+| owner (`inkyank-08`)  | `reads: hunter2` — backend works        |
 | non-owner (`zyv_app`) | `reads:` nothing — everyone else denied |
 
 ### Verify it yourself, one minute

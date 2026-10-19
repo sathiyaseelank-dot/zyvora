@@ -21,6 +21,7 @@ import { catalogRouter } from './routes/catalog.js';
 import { cartRouter } from './routes/cart.js';
 import { addressRouter } from './routes/address.js';
 import { checkoutRouter } from './routes/checkout.js';
+import { orderRouter } from './routes/order.js';
 
 /**
  * Express application assembly — Story ZYV-28.
@@ -117,6 +118,10 @@ export function createApp(): Express {
   // endpoint allows guests, since a shopper must see totals and shipping before
   // being asked to sign in, so it cannot live inside an authenticated group.
   app.use('/api', checkoutRouter);
+
+  // Orders (E9 / ZYV-61, ZYV-77, ZYV-89, ZYV-87). requireAuth() is inside the
+  // router; customer orders and order management require a signed-in session.
+  app.use('/api', limiters.api, orderRouter);
 
   // Terminal 404, then the single error handler.
   app.use(notFoundHandler());

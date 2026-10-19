@@ -673,4 +673,151 @@ authRouter.post(
   }),
 );
 
+const updateProfileSchema = z
+  .object({
+    fullName: z
+      .string()
+      .trim()
+      .min(2, 'Name must be at least 2 characters')
+      .max(255)
+      .optional(),
+    mobile: z
+      .string()
+      .trim()
+      .regex(/^[6-9]\d{9}$/, 'Mobile must be a 10-digit Indian number')
+      .optional(),
+  })
+  .refine((v) => Object.keys(v).length > 0, {
+    message: 'Provide at least one field to update',
+  });
+
+/**
+ * PATCH /api/auth/profile — Update customer name and mobile (ZYV-79).
+ */
+authRouter.patch(
+  '/profile',
+  requireAuth(),
+  requireCsrf,
+  validate({ body: updateProfileSchema }),
+  asyncHandler(async (req: Request, res: Response) => {
+    const user = req.user!;
+    const body = valid<z.infer<typeof updateProfileSchema>>(req, 'body');
+
+    const updateData: {
+      full_name?: string;
+      mobile?: string;
+      updated_at: Date;
+    } = {
+      updated_at: new Date(),
+    };
+    if (body.fullName !== undefined) updateData.full_name = body.fullName;
+    if (body.mobile !== undefined) updateData.mobile = body.mobile;
+
+    const updated = await db
+      .updateTable('users')
+      .set(updateData)
+      .where('id', '=', user.id)
+      .returning(['id', 'email', 'full_name', 'mobile', 'created_at'])
+      .executeTakeFirstOrThrow();
+
+    void audit(req, {
+      action: 'customer.profile_update',
+      entityType: 'user',
+      entityId: user.id,
+    });
+
+    res.json({
+      data: {
+        id: updated.id,
+        email: updated.email,
+        fullName: updated.full_name,
+        mobile: updated.mobile,
+        role: user.role,
+      },
+    });
+  }),
+);
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: z.string().min(1, 'New password is required'),
+});
+
+/**
+ * POST /api/auth/change-password — Update password with current password verification (ZYV-79).
+ */
+authRouter.post(
+  '/change-password',
+  limiters.auth,
+  requireAuth(),
+  requireCsrf,
+  validate({ body: changePasswordSchema }),
+  asyncHandler(async (req: Request, res: Response) => {
+    const authUser = req.user!;
+    const { currentPassword, newPassword } = valid<
+      z.infer<typeof changePasswordSchema>
+    >(req, 'body');
+
+    const user = await db
+      .selectFrom('users')
+      .innerJoin('roles', 'roles.id', 'users.role_id')
+      .select([
+        'users.id',
+        'users.email',
+        'users.password_hash',
+        'roles.name as roleName',
+      ])
+      .where('users.id', '=', authUser.id)
+      .executeTakeFirst();
+
+    if (!user) {
+      throw new AppError('AUTH_REQUIRED', 'Authentication required');
+    }
+
+    const currentMatches = await verifyPassword(
+      user.password_hash,
+      currentPassword,
+    );
+    if (!currentMatches) {
+      throw new AppError(
+        'INVALID_CREDENTIALS',
+        'Current password is incorrect',
+      );
+    }
+
+    const problem = validatePassword(newPassword);
+    if (problem) {
+      throw new AppError('BAD_REQUEST', problem);
+    }
+    const newHash = await hashPassword(newPassword);
+    const changedAt = new Date();
+
+    await db
+      .updateTable('users')
+      .set({
+        password_hash: newHash,
+        updated_at: changedAt,
+        session_invalid_before: changedAt,
+      })
+      .where('id', '=', user.id)
+      .execute();
+
+    // Re-issue session cookie so current user stays logged in
+    const role = (user.roleName === 'admin' ? 'admin' : 'customer') as RoleName;
+    const claims = { sub: user.id, role, email: user.email };
+    const token = await signSession(claims);
+    issueSessionCookies(res, claims, token);
+
+    void audit(req, {
+      action: 'customer.password_change',
+      entityType: 'user',
+      entityId: user.id,
+    });
+
+    res.json({
+      data: { message: 'Password updated successfully' },
+    });
+  }),
+);
+
 export { requireCsrf };

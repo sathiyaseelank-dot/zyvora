@@ -20,6 +20,8 @@ import { ProductDetailPage } from './pages/ProductDetailPage';
 import { CraftPage } from './pages/CraftPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
+import { CheckoutPage } from './pages/CheckoutPage';
+import { OrderConfirmationPage } from './pages/OrderConfirmationPage';
 
 /**
  * Route table.
@@ -53,6 +55,11 @@ export function App() {
             element={<ProductDetailPage onTitle={setTitle} />}
           />
           <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route
+            path="/order-confirmation/:id"
+            element={<OrderConfirmationPage />}
+          />
           {/* Was rendering <CatalogPage /> under the "Craft" label. */}
           <Route path="/about" element={<CraftPage />} />
 

@@ -320,17 +320,23 @@ export function CartPage() {
             )}
 
             <ButtonLink
-              to="/catalog"
+              to="/checkout"
               variant="brass"
               size="lg"
               fullWidth
               className="mt-6"
             >
+              Proceed to checkout
+            </ButtonLink>
+            <ButtonLink
+              to="/catalog"
+              variant="outline"
+              size="md"
+              fullWidth
+              className="mt-3"
+            >
               Continue shopping
             </ButtonLink>
-            <p className="mt-3 text-center text-[11px] text-ink-muted">
-              Checkout arrives with the addresses epic.
-            </p>
           </div>
         </aside>
       </div>

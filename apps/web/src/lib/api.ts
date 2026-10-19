@@ -386,3 +386,261 @@ export function removeCartItem(
     },
   ).then((r) => r.data);
 }
+
+/* ---------------------------------------------------------------- addresses - */
+
+export interface Address {
+  id: string;
+  fullName: string;
+  mobile: string;
+  email: string;
+  houseNumberAndStreet: string;
+  area: string;
+  landmark?: string | null;
+  city: string;
+  state: string;
+  pinCode: string;
+  country: string;
+  deliveryInstructions?: string | null;
+  isDefault: boolean;
+}
+
+export type AddressInput = Omit<Address, 'id'>;
+
+export function fetchAddresses(signal?: AbortSignal): Promise<Address[]> {
+  return request<{ data: Address[] }>('/api/addresses', { signal }).then(
+    (r) => r.data,
+  );
+}
+
+export function createAddress(
+  body: AddressInput,
+  signal?: AbortSignal,
+): Promise<Address> {
+  return request<{ data: Address }>('/api/addresses', {
+    method: 'POST',
+    body,
+    signal,
+  }).then((r) => r.data);
+}
+
+export function updateAddress(
+  id: string,
+  body: Partial<AddressInput>,
+  signal?: AbortSignal,
+): Promise<Address> {
+  return request<{ data: Address }>(
+    `/api/addresses/${encodeURIComponent(id)}`,
+    {
+      method: 'PATCH',
+      body,
+      signal,
+    },
+  ).then((r) => r.data);
+}
+
+export function deleteAddress(
+  id: string,
+  signal?: AbortSignal,
+): Promise<{ deleted: boolean }> {
+  return request<{ data: { deleted: boolean } }>(
+    `/api/addresses/${encodeURIComponent(id)}`,
+    {
+      method: 'DELETE',
+      signal,
+    },
+  ).then((r) => r.data);
+}
+
+/* ----------------------------------------------------------------- checkout - */
+
+export interface CheckoutValidation {
+  canCheckout: boolean;
+  blockers: Array<{ code: string; message: string }>;
+  totals: {
+    subtotal: number;
+    shipping: number;
+    discount: number;
+    total: number;
+  } | null;
+  lines: Array<{
+    itemId: string;
+    productId: string;
+    name: string;
+    price: number;
+    requestedQuantity: number;
+  }>;
+  address: Address | null;
+  addressIgnoredForGuest?: boolean;
+}
+
+export function validateCheckout(
+  body: { addressId?: string; couponCode?: string },
+  signal?: AbortSignal,
+): Promise<CheckoutValidation> {
+  return request<{ data: CheckoutValidation }>('/api/checkout/validate', {
+    method: 'POST',
+    body,
+    signal,
+  }).then((r) => r.data);
+}
+
+/* ------------------------------------------------------------------- orders - */
+
+export interface OrderItem {
+  id: string;
+  order_id: string;
+  product_id: string;
+  name: string;
+  unit_price: number;
+  quantity: number;
+}
+
+export interface Shipment {
+  id: string;
+  order_id: string;
+  carrier: string | null;
+  tracking_number: string | null;
+  status: string;
+  shipped_at: string | null;
+  delivered_at: string | null;
+}
+
+export interface PaymentRecord {
+  id: string;
+  order_id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  method: string | null;
+}
+
+export interface Order {
+  id: string;
+  user_id: string;
+  checkout_session_id: string;
+  status: string;
+  subtotal: number;
+  shipping: number;
+  tax: number;
+  discount: number;
+  total: number;
+  cancel_reason?: string | null;
+  cancelled_at?: string | null;
+  return_reason?: string | null;
+  return_requested_at?: string | null;
+  created_at: string;
+  updated_at: string;
+  items?: OrderItem[];
+  shippingAddress?: Address | null;
+  shipment?: Shipment | null;
+  payment?: PaymentRecord | null;
+}
+
+export function createOrder(
+  body: {
+    addressId: string;
+    couponCode?: string;
+    checkoutSessionId?: string;
+  },
+  signal?: AbortSignal,
+): Promise<{ order: Order; items: OrderItem[] }> {
+  return request<{ data: { order: Order; items: OrderItem[] } }>(
+    '/api/orders',
+    {
+      method: 'POST',
+      body,
+      signal,
+    },
+  ).then((r) => r.data);
+}
+
+export function fetchOrders(
+  params?: { page?: number; limit?: number; status?: string },
+  signal?: AbortSignal,
+): Promise<{ data: Order[]; meta: ListMeta }> {
+  const query = new URLSearchParams();
+  if (params?.page) query.set('page', String(params.page));
+  if (params?.limit) query.set('limit', String(params.limit));
+  if (params?.status) query.set('status', params.status);
+
+  return request<{ data: Order[]; meta: ListMeta }>(
+    `/api/orders${query.toString() ? `?${query.toString()}` : ''}`,
+    { signal },
+  );
+}
+
+export function fetchOrder(id: string, signal?: AbortSignal): Promise<Order> {
+  return request<{ data: Order }>(`/api/orders/${encodeURIComponent(id)}`, {
+    signal,
+  }).then((r) => r.data);
+}
+
+export function cancelOrder(
+  id: string,
+  reason?: string,
+  signal?: AbortSignal,
+): Promise<{ order: Order; message: string }> {
+  return request<{ data: { order: Order; message: string } }>(
+    `/api/orders/${encodeURIComponent(id)}/cancel`,
+    {
+      method: 'POST',
+      body: { reason },
+      signal,
+    },
+  ).then((r) => r.data);
+}
+
+export function requestReturn(
+  id: string,
+  reason: string,
+  signal?: AbortSignal,
+): Promise<{ order: Order; message: string }> {
+  return request<{ data: { order: Order; message: string } }>(
+    `/api/orders/${encodeURIComponent(id)}/return`,
+    {
+      method: 'POST',
+      body: { reason },
+      signal,
+    },
+  ).then((r) => r.data);
+}
+
+/* ------------------------------------------------------------------ account - */
+
+export function updateProfile(
+  body: { fullName?: string; mobile?: string },
+  signal?: AbortSignal,
+): Promise<{ id: string; email: string; fullName: string; mobile: string }> {
+  return request<{
+    data: { id: string; email: string; fullName: string; mobile: string };
+  }>('/api/auth/profile', {
+    method: 'PATCH',
+    body,
+    signal,
+  }).then((r) => r.data);
+}
+
+export function changePassword(
+  body: { currentPassword: string; newPassword: string },
+  signal?: AbortSignal,
+): Promise<{ message: string }> {
+  return request<{ data: { message: string } }>('/api/auth/change-password', {
+    method: 'POST',
+    body,
+    signal,
+  }).then((r) => r.data);
+}
+
+/* ----------------------------------------------------------- content blocks - */
+
+export function fetchContentBlock(
+  slug: string,
+  signal?: AbortSignal,
+): Promise<{ id: string; slug: string; title: string; body: string }> {
+  return request<{
+    data: { id: string; slug: string; title: string; body: string };
+  }>(`/api/content-blocks/${encodeURIComponent(slug)}`, { signal }).then(
+    (r) => r.data,
+  );
+}

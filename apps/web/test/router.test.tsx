@@ -31,7 +31,7 @@ vi.mock(import('../src/lib/api'), async (importOriginal) => {
     ...actual,
     fetchCart: vi.fn().mockResolvedValue({
       id: 'mock-cart-id',
-      items: [],
+      lines: [],
       totals: { subtotal: 0, discount: 0, total: 0, itemCount: 0 },
     }),
     fetchCategories: vi.fn().mockResolvedValue([]),
@@ -41,6 +41,12 @@ vi.mock(import('../src/lib/api'), async (importOriginal) => {
     }),
     fetchProduct: vi.fn(),
     searchProducts: vi.fn(),
+    fetchOrders: vi.fn().mockResolvedValue({
+      data: [],
+      meta: { page: 1, limit: 10, total: 0, totalPages: 0 },
+    }),
+    fetchOrder: vi.fn(),
+    fetchAddresses: vi.fn().mockResolvedValue([]),
   };
 });
 
@@ -60,7 +66,7 @@ describe('App Router Wiring (ZYV-1317)', () => {
     vi.mocked(auth.fetchCurrentUser).mockResolvedValue(null);
     vi.mocked(api.fetchCart).mockResolvedValue({
       id: 'mock-cart-id',
-      items: [],
+      lines: [],
       totals: { subtotal: 0, discount: 0, total: 0, itemCount: 0 },
     });
     vi.mocked(api.fetchCategories).mockResolvedValue([]);
@@ -197,6 +203,86 @@ describe('App Router Wiring (ZYV-1317)', () => {
     await waitFor(() => {
       expect(
         screen.getByRole('heading', { name: /control console/i }),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('allows authenticated customer to view "/account" dashboard (ZYV-97)', async () => {
+    vi.mocked(auth.fetchCurrentUser).mockResolvedValue({
+      id: 'cust-1',
+      email: 'customer@zyvora.com',
+      fullName: 'Customer Name',
+      role: 'customer',
+    });
+    vi.mocked(api.fetchOrders).mockResolvedValue({
+      data: [],
+      meta: { page: 1, limit: 10, total: 0, totalPages: 0 },
+    });
+    vi.mocked(api.fetchAddresses).mockResolvedValue([]);
+
+    renderAt('/account');
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { level: 1, name: /hello/i }),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('renders CheckoutPage on "/checkout"', async () => {
+    vi.mocked(api.fetchCart).mockResolvedValue({
+      id: 'cart-1',
+      lines: [
+        {
+          itemId: 'i-1',
+          productId: 'p-1',
+          name: 'ZYVORA Car Flag',
+          image: '/flag.jpg',
+          unitPrice: 1999,
+          quantity: 1,
+          lineTotal: 1999,
+          available: 10,
+        },
+      ],
+      totals: {
+        subtotal: 1999,
+        shipping: 0,
+        discount: 0,
+        total: 1999,
+        itemCount: 1,
+        freeShippingThreshold: 2000,
+        amountToFreeShipping: 1,
+      },
+    } as any);
+
+    renderAt('/checkout');
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { level: 1, name: /complete your order/i }),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('renders OrderConfirmationPage on "/order-confirmation/:id"', async () => {
+    vi.mocked(api.fetchOrder).mockResolvedValue({
+      id: 'ord-123',
+      orderNumber: 'ZYV-2027-0001',
+      status: 'confirmed',
+      currency: 'INR',
+      subtotal: 1999,
+      shippingFee: 0,
+      discount: 0,
+      total: 1999,
+      customerEmail: 'cust@zyvora.com',
+      items: [],
+      payment: { status: 'pending', method: 'deferred' },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    } as any);
+
+    renderAt('/order-confirmation/ord-123');
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { level: 1, name: /order confirmed/i }),
       ).toBeInTheDocument();
     });
   });

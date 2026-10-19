@@ -24,6 +24,7 @@ import {
   verifyCsrf,
 } from '../auth/session.js';
 import { signSession } from '../auth/jwt.js';
+import { getMailer } from '../mail/mailer.js';
 
 /**
  * Authentication endpoints — Epic E6.
@@ -474,6 +475,14 @@ authRouter.post(
         action: 'auth.password_reset_requested',
         entityType: 'user',
         entityId: user.id,
+      });
+
+      // ZYV-83: Transactional email dispatch (gracefully noops when unconfigured)
+      void getMailer().sendPasswordReset({
+        to: email,
+        resetToken: raw,
+        resetUrl: `${env.FRONTEND_URL}/reset-password?token=${encodeURIComponent(raw)}`,
+        expiresInMinutes: RESET_TTL_MINUTES,
       });
 
       // No email provider is configured yet (ZYV-83 is explicit that none is

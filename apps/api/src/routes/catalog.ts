@@ -343,3 +343,42 @@ catalogRouter.get(
     });
   }),
 );
+
+/** ZYV-93 — GET /api/banners: public active promotional banners */
+catalogRouter.get(
+  '/banners',
+  asyncHandler(async (_req: Request, res: Response) => {
+    const banners = await db
+      .selectFrom('banners')
+      .selectAll()
+      .where('is_active', '=', true)
+      .orderBy('display_order', 'asc')
+      .execute();
+
+    res.json({ data: banners });
+  }),
+);
+
+/** ZYV-93 — GET /api/content/:slug: public policy or informational page content */
+catalogRouter.get(
+  '/content/:slug',
+  validate({
+    params: z.object({ slug: z.string().trim().min(2).max(100) }),
+  }),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { slug } = valid<{ slug: string }>(req, 'params');
+
+    const content = await db
+      .selectFrom('content_blocks')
+      .selectAll()
+      .where('slug', '=', slug)
+      .executeTakeFirst();
+
+    if (!content) {
+      throw new AppError('NOT_FOUND', 'Content block not found');
+    }
+
+    res.json({ data: content });
+  }),
+);
+

@@ -159,4 +159,45 @@ describe('App Router Wiring (ZYV-1317)', () => {
       ).toBeInTheDocument();
     });
   });
+
+  it('redirects unauthenticated user away from protected "/admin" route', async () => {
+    renderAt('/admin');
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: /sign in/i }),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('blocks non-admin authenticated customer from "/admin" route with 403', async () => {
+    vi.mocked(auth.fetchCurrentUser).mockResolvedValue({
+      id: 'cust-1',
+      email: 'customer@zyvora.com',
+      fullName: 'Customer Name',
+      role: 'customer',
+    });
+
+    renderAt('/admin');
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: /access restricted/i }),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('allows authenticated admin user to view "/admin" console (ZYV-98)', async () => {
+    vi.mocked(auth.fetchCurrentUser).mockResolvedValue({
+      id: 'admin-1',
+      email: 'admin@zyvora.com',
+      fullName: 'Admin User',
+      role: 'admin',
+    });
+
+    renderAt('/admin');
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: /control console/i }),
+      ).toBeInTheDocument();
+    });
+  });
 });

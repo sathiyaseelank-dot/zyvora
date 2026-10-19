@@ -50,3 +50,44 @@ export function RequireAnonymous({ children }: { children: ReactNode }) {
 
   return <>{children}</>;
 }
+
+/** Protects administration console (ZYV-98 / ZYV-84). */
+export function RequireAdmin({ children }: { children: ReactNode }) {
+  const { status, user } = useSession();
+  const location = useLocation();
+
+  if (status === 'loading') {
+    return (
+      <div
+        role="status"
+        aria-live="polite"
+        className="mx-auto max-w-[460px] px-5 py-20 text-center"
+      >
+        <p className="text-[11px] tracking-[0.14em] text-ink-muted uppercase">
+          Verifying administrative permissions…
+        </p>
+      </div>
+    );
+  }
+
+  if (status === 'anonymous') {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
+
+  if (user?.role !== 'admin') {
+    return (
+      <div className="mx-auto max-w-[560px] px-5 py-24 text-center sm:py-32">
+        <p className="eyebrow eyebrow--centred">Error 403</p>
+        <h1 className="font-display text-[clamp(2rem,5vw,3rem)]">
+          Access Restricted
+        </h1>
+        <p className="mx-auto mt-4 max-w-[44ch] text-[14px] leading-relaxed text-ink-soft">
+          You do not have administrative permissions to view this console.
+        </p>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
+

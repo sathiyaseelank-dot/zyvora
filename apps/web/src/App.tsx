@@ -3,7 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 
 import { Footer } from './components/Footer';
 import { Header } from './components/Header';
-import { RequireAnonymous, RequireAuth } from './components/RequireAuth';
+import { RequireAdmin, RequireAnonymous, RequireAuth } from './components/RequireAuth';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
@@ -15,6 +15,7 @@ import { CatalogPage } from './pages/CatalogPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
 import { CraftPage } from './pages/CraftPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { AdminDashboardPage } from './pages/AdminDashboardPage';
 
 /**
  * Route table.
@@ -77,6 +78,15 @@ export function App() {
               <RequireAuth>
                 <AccountPage />
               </RequireAuth>
+            }
+          />
+
+          <Route
+            path="/admin"
+            element={
+              <RequireAdmin>
+                <AdminDashboardPage onTitle={setTitle} />
+              </RequireAdmin>
             }
           />
 

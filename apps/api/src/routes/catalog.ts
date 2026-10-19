@@ -361,7 +361,7 @@ catalogRouter.get(
 
 /** ZYV-93 — GET /api/content/:slug: public policy or informational page content */
 catalogRouter.get(
-  '/content/:slug',
+  ['/content/:slug', '/content-blocks/:slug'],
   validate({
     params: z.object({ slug: z.string().trim().min(2).max(100) }),
   }),

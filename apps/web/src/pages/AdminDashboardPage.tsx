@@ -52,9 +52,15 @@ interface AdminAuditEntry {
   createdAt: string;
 }
 
-export function AdminDashboardPage({ onTitle }: { onTitle?: (t: string) => void }) {
+export function AdminDashboardPage({
+  onTitle,
+}: {
+  onTitle?: (t: string) => void;
+}) {
   const { user } = useSession();
-  const [tab, setTab] = useState<'overview' | 'products' | 'orders' | 'refunds' | 'audit'>('overview');
+  const [tab, setTab] = useState<
+    'overview' | 'products' | 'orders' | 'refunds' | 'audit'
+  >('overview');
 
   const [summary, setSummary] = useState<SalesSummary | null>(null);
   const [products, setProducts] = useState<AdminProduct[]>([]);
@@ -76,24 +82,38 @@ export function AdminDashboardPage({ onTitle }: { onTitle?: (t: string) => void 
     async function loadData() {
       try {
         if (tab === 'overview') {
-          const res = await request<{ data: SalesSummary }>('/api/admin/reports/summary');
+          const res = await request<{ data: SalesSummary }>(
+            '/api/admin/reports/summary',
+          );
           if (active) setSummary(res.data);
         } else if (tab === 'products') {
-          const res = await request<{ data: AdminProduct[] }>('/api/admin/products?limit=50');
+          const res = await request<{ data: AdminProduct[] }>(
+            '/api/admin/products?limit=50',
+          );
           if (active) setProducts(res.data);
         } else if (tab === 'orders') {
-          const res = await request<{ data: AdminOrder[] }>('/api/admin/orders?limit=50');
+          const res = await request<{ data: AdminOrder[] }>(
+            '/api/admin/orders?limit=50',
+          );
           if (active) setOrders(res.data);
         } else if (tab === 'refunds') {
-          const res = await request<{ data: AdminRefund[] }>('/api/admin/refunds');
+          const res = await request<{ data: AdminRefund[] }>(
+            '/api/admin/refunds',
+          );
           if (active) setRefunds(res.data);
         } else if (tab === 'audit') {
-          const res = await request<{ data: AdminAuditEntry[] }>('/api/admin/audit-log?limit=50');
+          const res = await request<{ data: AdminAuditEntry[] }>(
+            '/api/admin/audit-log?limit=50',
+          );
           if (active) setAuditLogs(res.data);
         }
       } catch (err: unknown) {
         if (active) {
-          setError(err instanceof Error ? err.message : 'Failed to load administration data');
+          setError(
+            err instanceof Error
+              ? err.message
+              : 'Failed to load administration data',
+          );
         }
       } finally {
         if (active) setLoading(false);
@@ -120,7 +140,10 @@ export function AdminDashboardPage({ onTitle }: { onTitle?: (t: string) => void 
     }
   }
 
-  async function handleRefundStatus(refundId: string, nextStatus: 'approved' | 'rejected') {
+  async function handleRefundStatus(
+    refundId: string,
+    nextStatus: 'approved' | 'rejected',
+  ) {
     try {
       await request(`/api/admin/refunds/${refundId}/status`, {
         method: 'PATCH',
@@ -139,7 +162,9 @@ export function AdminDashboardPage({ onTitle }: { onTitle?: (t: string) => void 
       <header className="mb-8 flex flex-col justify-between gap-4 border-b border-rule pb-6 sm:flex-row sm:items-center">
         <div>
           <p className="eyebrow">Administration</p>
-          <h1 className="font-display text-[32px] sm:text-[40px]">Control Console</h1>
+          <h1 className="font-display text-[32px] sm:text-[40px]">
+            Control Console
+          </h1>
         </div>
         <div className="flex items-center gap-4">
           <span className="rounded-full bg-brass-deep/10 px-3 py-1 text-[11px] font-semibold text-brass-deep uppercase">
@@ -155,7 +180,10 @@ export function AdminDashboardPage({ onTitle }: { onTitle?: (t: string) => void 
       </header>
 
       {/* Tabs */}
-      <nav aria-label="Admin Sections" className="mb-8 flex gap-2 border-b border-rule">
+      <nav
+        aria-label="Admin Sections"
+        className="mb-8 flex gap-2 border-b border-rule"
+      >
         {[
           { key: 'overview', label: 'Overview & Reports' },
           { key: 'products', label: 'Products' },
@@ -179,7 +207,10 @@ export function AdminDashboardPage({ onTitle }: { onTitle?: (t: string) => void 
       </nav>
 
       {error && (
-        <div role="alert" className="mb-6 rounded-lg bg-red-50 p-4 text-[13px] text-red-700">
+        <div
+          role="alert"
+          className="mb-6 rounded-lg bg-red-50 p-4 text-[13px] text-red-700"
+        >
           {error}
         </div>
       )}
@@ -194,16 +225,28 @@ export function AdminDashboardPage({ onTitle }: { onTitle?: (t: string) => void 
             <div className="space-y-8">
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
                 <div className="rounded-xl border border-rule bg-paper p-6">
-                  <p className="text-[11px] font-semibold text-ink-muted uppercase">Total Revenue</p>
-                  <p className="mt-2 font-display text-[32px]">₹{summary.totalRevenue.toLocaleString()}</p>
+                  <p className="text-[11px] font-semibold text-ink-muted uppercase">
+                    Total Revenue
+                  </p>
+                  <p className="mt-2 font-display text-[32px]">
+                    ₹{summary.totalRevenue.toLocaleString()}
+                  </p>
                 </div>
                 <div className="rounded-xl border border-rule bg-paper p-6">
-                  <p className="text-[11px] font-semibold text-ink-muted uppercase">Total Orders</p>
-                  <p className="mt-2 font-display text-[32px]">{summary.totalOrders}</p>
+                  <p className="text-[11px] font-semibold text-ink-muted uppercase">
+                    Total Orders
+                  </p>
+                  <p className="mt-2 font-display text-[32px]">
+                    {summary.totalOrders}
+                  </p>
                 </div>
                 <div className="rounded-xl border border-rule bg-paper p-6">
-                  <p className="text-[11px] font-semibold text-ink-muted uppercase">Average Order Value</p>
-                  <p className="mt-2 font-display text-[32px]">₹{summary.averageOrderValue.toLocaleString()}</p>
+                  <p className="text-[11px] font-semibold text-ink-muted uppercase">
+                    Average Order Value
+                  </p>
+                  <p className="mt-2 font-display text-[32px]">
+                    ₹{summary.averageOrderValue.toLocaleString()}
+                  </p>
                 </div>
               </div>
 
@@ -242,13 +285,17 @@ export function AdminDashboardPage({ onTitle }: { onTitle?: (t: string) => void 
                   {products.map((p) => (
                     <tr key={p.id} className="hover:bg-paper-sunk/50">
                       <td className="px-4 py-3.5 font-medium">{p.name}</td>
-                      <td className="px-4 py-3.5 text-ink-muted">{p.categoryName}</td>
+                      <td className="px-4 py-3.5 text-ink-muted">
+                        {p.categoryName}
+                      </td>
                       <td className="px-4 py-3.5">₹{p.price}</td>
                       <td className="px-4 py-3.5">{p.stock}</td>
                       <td className="px-4 py-3.5">
                         <span
                           className={`rounded px-2 py-0.5 text-[10px] font-semibold uppercase ${
-                            p.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-700'
+                            p.isActive
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-gray-100 text-gray-700'
                           }`}
                         >
                           {p.isActive ? 'Active' : 'Archived'}
@@ -276,7 +323,9 @@ export function AdminDashboardPage({ onTitle }: { onTitle?: (t: string) => void 
                 <tbody className="divide-y divide-rule">
                   {orders.map((o) => (
                     <tr key={o.id} className="hover:bg-paper-sunk/50">
-                      <td className="px-4 py-3.5 font-mono text-[12px]">{o.id.slice(0, 8)}…</td>
+                      <td className="px-4 py-3.5 font-mono text-[12px]">
+                        {o.id.slice(0, 8)}…
+                      </td>
                       <td className="px-4 py-3.5">{o.customerEmail}</td>
                       <td className="px-4 py-3.5 font-medium">₹{o.total}</td>
                       <td className="px-4 py-3.5 capitalize">{o.status}</td>
@@ -284,7 +333,9 @@ export function AdminDashboardPage({ onTitle }: { onTitle?: (t: string) => void 
                         {o.status === 'pending' && (
                           <button
                             type="button"
-                            onClick={() => handleStatusTransition(o.id, 'confirmed')}
+                            onClick={() =>
+                              handleStatusTransition(o.id, 'confirmed')
+                            }
                             className="rounded bg-brass-deep px-2.5 py-1 text-[11px] font-semibold text-paper"
                           >
                             Confirm Order
@@ -293,7 +344,9 @@ export function AdminDashboardPage({ onTitle }: { onTitle?: (t: string) => void 
                         {o.status === 'confirmed' && (
                           <button
                             type="button"
-                            onClick={() => handleStatusTransition(o.id, 'processing')}
+                            onClick={() =>
+                              handleStatusTransition(o.id, 'processing')
+                            }
                             className="rounded bg-brass-deep px-2.5 py-1 text-[11px] font-semibold text-paper"
                           >
                             Process
@@ -302,7 +355,9 @@ export function AdminDashboardPage({ onTitle }: { onTitle?: (t: string) => void 
                         {o.status === 'processing' && (
                           <button
                             type="button"
-                            onClick={() => handleStatusTransition(o.id, 'shipped')}
+                            onClick={() =>
+                              handleStatusTransition(o.id, 'shipped')
+                            }
                             className="rounded bg-brass-deep px-2.5 py-1 text-[11px] font-semibold text-paper"
                           >
                             Mark Shipped
@@ -311,7 +366,9 @@ export function AdminDashboardPage({ onTitle }: { onTitle?: (t: string) => void 
                         {o.status === 'shipped' && (
                           <button
                             type="button"
-                            onClick={() => handleStatusTransition(o.id, 'delivered')}
+                            onClick={() =>
+                              handleStatusTransition(o.id, 'delivered')
+                            }
                             className="rounded bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-paper"
                           >
                             Mark Delivered
@@ -340,7 +397,9 @@ export function AdminDashboardPage({ onTitle }: { onTitle?: (t: string) => void 
                 <tbody className="divide-y divide-rule">
                   {refunds.map((r) => (
                     <tr key={r.id} className="hover:bg-paper-sunk/50">
-                      <td className="px-4 py-3.5 font-mono text-[12px]">{r.id.slice(0, 8)}…</td>
+                      <td className="px-4 py-3.5 font-mono text-[12px]">
+                        {r.id.slice(0, 8)}…
+                      </td>
                       <td className="px-4 py-3.5 font-medium">₹{r.amount}</td>
                       <td className="px-4 py-3.5 text-ink-muted">{r.reason}</td>
                       <td className="px-4 py-3.5 capitalize">{r.status}</td>
@@ -349,14 +408,18 @@ export function AdminDashboardPage({ onTitle }: { onTitle?: (t: string) => void 
                           <div className="flex gap-2">
                             <button
                               type="button"
-                              onClick={() => handleRefundStatus(r.id, 'approved')}
+                              onClick={() =>
+                                handleRefundStatus(r.id, 'approved')
+                              }
                               className="rounded bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-paper"
                             >
                               Approve
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleRefundStatus(r.id, 'rejected')}
+                              onClick={() =>
+                                handleRefundStatus(r.id, 'rejected')
+                              }
                               className="rounded bg-red-600 px-2.5 py-1 text-[11px] font-semibold text-paper"
                             >
                               Reject
@@ -385,7 +448,9 @@ export function AdminDashboardPage({ onTitle }: { onTitle?: (t: string) => void 
                 <tbody className="divide-y divide-rule">
                   {auditLogs.map((a) => (
                     <tr key={a.id} className="hover:bg-paper-sunk/50">
-                      <td className="px-4 py-3.5 font-mono text-[12px]">{a.action}</td>
+                      <td className="px-4 py-3.5 font-mono text-[12px]">
+                        {a.action}
+                      </td>
                       <td className="px-4 py-3.5">{a.entityType}</td>
                       <td className="px-4 py-3.5 font-mono text-[11px] text-ink-muted">
                         {a.entityId ? `${a.entityId.slice(0, 8)}…` : '—'}

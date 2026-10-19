@@ -3,7 +3,11 @@ import { Route, Routes } from 'react-router-dom';
 
 import { Footer } from './components/Footer';
 import { Header } from './components/Header';
-import { RequireAdmin, RequireAnonymous, RequireAuth } from './components/RequireAuth';
+import {
+  RequireAdmin,
+  RequireAnonymous,
+  RequireAuth,
+} from './components/RequireAuth';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';

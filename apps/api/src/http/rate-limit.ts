@@ -212,8 +212,24 @@ export function rateLimit(options: RateLimitOptions): RequestHandler {
  * Deliberately strict on credential endpoints and loose on ordinary reads.
  */
 export const limiters = {
-  /** Login/register/forgot-password — credential stuffing. */
-  auth: rateLimit({ name: 'auth', limit: 10, windowMs: 15 * 60 * 1000 }),
+  /**
+   * Login/register/forgot-password — credential stuffing.
+   *
+   * Deliberately scoped to the credential-accepting routes ONLY, attached
+   * inside routes/auth.ts rather than to the whole `/api/auth` router.
+   *
+   * It used to be mounted as `app.use('/api/auth', limiters.auth, ...)`, which
+   * charged every session read and every CSRF token against the budget. A
+   * single sign-in cost three of the ten attempts (csrf → login → me), so a
+   * user refreshing a login form three times was locked out of their own
+   * account for 15 minutes — and because a refresh costs another attempt, the
+   * lockout was inescapable. That is a self-inflicted denial of service on the
+   * only way to sign in.
+   *
+   * The threat model is credential stuffing, which is aimed at `/login`.
+   * `/csrf` and `/me` carry no secret and cannot be brute-forced.
+   */
+  auth: rateLimit({ name: 'auth', limit: 15, windowMs: 15 * 60 * 1000 }),
 
   /** Order creation and payment initiation. */
   checkout: rateLimit({

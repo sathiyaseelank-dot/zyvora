@@ -14,7 +14,8 @@
     "migrate": "tsx src/db/migrate.ts",
     "migrate:make": "tsx -e \"import { FileMigrationProvider } from 'kysely/migration'; import * as fs from 'fs/promises'; import * as path from 'path'; const provider = new FileMigrationProvider({ fs, path, migrationFolder: path.join(import.meta.dirname, 'src/db/migrations') }); await provider.createMigration('migration_name');\"",
     "seed": "tsx src/db/seeds/seed.ts",
-    "migrate:down": "tsx src/db/migrate.ts down"
+    "migrate:down": "tsx src/db/migrate.ts down",
+    "admin:provision": "tsx src/db/scripts/provision-admin.ts"
   },
   "dependencies": {
     "@zyvora/config": "*",

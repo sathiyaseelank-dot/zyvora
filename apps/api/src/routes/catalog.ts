@@ -381,4 +381,3 @@ catalogRouter.get(
     res.json({ data: content });
   }),
 );
-

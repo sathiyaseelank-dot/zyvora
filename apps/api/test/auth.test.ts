@@ -8,6 +8,7 @@ import { CSRF_COOKIE, CSRF_HEADER } from '../src/auth/session.js';
 import {
   startServer,
   jarFetch,
+  getJson,
   CookieJar,
   type TestClient,
 } from './helpers.js';
@@ -504,3 +505,80 @@ async function getJson401(c: TestClient) {
   const res = await fetch(`${c.url}/api/auth/me`);
   return { status: res.status, body: await res.json().catch(() => null) };
 }
+
+/**
+ * ZYV-29 regression — the sign-in budget must not be spent on non-credential
+ * routes.
+ *
+ * The strict limiter used to be mounted on the whole `/api/auth` router, so a
+ * CSRF token fetch and a `/me` session check each consumed an attempt from the
+ * same 10-per-15-minutes bucket. Three page loads locked a user out of their
+ * own account for a quarter of an hour, and refreshing could not escape it
+ * because a refresh costs another attempt. These tests pin the two halves of
+ * the fix: session reads are NOT limited at that budget, and credential routes
+ * still ARE.
+ */
+describe('ZYV-29 auth rate limit scope', () => {
+  beforeEach(() => resetRateLimits());
+
+  it('does not charge GET /api/auth/csrf against the sign-in budget', async () => {
+    // More calls than the auth limiter's limit of 15. If csrf were limited by
+    // that bucket this would start returning 429 partway through.
+    for (let i = 0; i < 20; i++) {
+      const res = await fetch(`${client.url}/api/auth/csrf`);
+      assert.equal(res.status, 200, `csrf request ${i + 1} was rate limited`);
+    }
+  });
+
+  it('still charges POST /api/auth/login against the sign-in budget', async () => {
+    // A CSRF token is required before login, and fetching it must not have
+    // consumed the budget the login attempts are counted against.
+    const jar = new CookieJar();
+    const csrf = await getJson(client, '/api/auth/csrf');
+    const token = csrf.body.data.csrfToken;
+
+    let sawRateLimit = false;
+    for (let i = 0; i < 20; i++) {
+      const res = await jarFetch(client, jar, '/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({
+          identifier: 'nobody@example.invalid',
+          password: 'wrong on purpose',
+        }),
+        headers: {
+          [CSRF_HEADER]: token,
+          'content-type': 'application/json',
+        },
+      });
+      if (res.status === 429) {
+        sawRateLimit = true;
+        assert.ok(
+          res.headers.get('retry-after'),
+          'a 429 from the auth limiter must say how long to wait',
+        );
+        break;
+      }
+      assert.notEqual(
+        res.status,
+        500,
+        'login must not 500 while being limited',
+      );
+    }
+    assert.ok(
+      sawRateLimit,
+      'POST /api/auth/login must remain rate limited — the fix must not disable it',
+    );
+  });
+
+  it('does not charge GET /api/auth/me against the sign-in budget', async () => {
+    for (let i = 0; i < 20; i++) {
+      // No session, so this is a 401 — the point is that it is never a 429.
+      const res = await getJson401(client);
+      assert.equal(
+        res.status,
+        401,
+        `me request ${i + 1} returned ${res.status}`,
+      );
+    }
+  });
+});

@@ -474,7 +474,11 @@ describe('E6 review regression: credential endpoints are rate limited', () => {
     const token = await csrf();
     let sawLimit = false;
     let attempts = 0;
-    for (let i = 0; i < 15; i++) {
+    // Must exceed the auth limiter's limit of 15 so the sweep can actually
+    // reach a 429. The loop cap is deliberately higher than the limit: an
+    // attempt count equal to the limit would end the loop before the limiter
+    // ever engaged, and the test would then fail for the wrong reason.
+    for (let i = 0; i < 25; i++) {
       const res = await fetch(`${client.url}/api/auth/login`, {
         method: 'POST',
         headers: {
@@ -495,7 +499,7 @@ describe('E6 review regression: credential endpoints are rate limited', () => {
       }
     }
     assert.ok(
-      attempts <= 12,
+      attempts <= 17,
       `the limiter must engage promptly; it took ${attempts} attempts`,
     );
     assert.ok(

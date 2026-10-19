@@ -21,16 +21,58 @@ describe('Epic E10 — Admin Dashboard API', () => {
   let customerCookie: string;
 
   async function cleanup() {
-    await db.deleteFrom('refunds').where('reason', 'like', 'Customer requested%').execute().catch(() => {});
-    await db.deleteFrom('payments').where('currency', '=', 'INR').execute().catch(() => {});
-    await db.deleteFrom('order_items').where('name', 'like', 'E10%').execute().catch(() => {});
-    await db.deleteFrom('orders').where('user_id', 'in', [CUSTOMER_USER_ID, ADMIN_USER_ID]).execute().catch(() => {});
-    await db.deleteFrom('inventory').where('product_id', 'in', (eb) => eb.selectFrom('products').select('id').where('name', 'like', 'E10%')).execute().catch(() => {});
-    await db.deleteFrom('product_images').where('url', 'like', '%unsplash%').execute().catch(() => {});
-    await db.deleteFrom('products').where('name', 'like', 'E10%').execute().catch(() => {});
-    await db.deleteFrom('coupons').where('code', 'like', 'E10%').execute().catch(() => {});
-    await db.deleteFrom('banners').where('title', 'like', 'E10%').execute().catch(() => {});
-    await db.deleteFrom('users').where('id', 'in', [ADMIN_USER_ID, CUSTOMER_USER_ID]).execute().catch(() => {});
+    await db
+      .deleteFrom('refunds')
+      .where('reason', 'like', 'Customer requested%')
+      .execute()
+      .catch(() => {});
+    await db
+      .deleteFrom('payments')
+      .where('currency', '=', 'INR')
+      .execute()
+      .catch(() => {});
+    await db
+      .deleteFrom('order_items')
+      .where('name', 'like', 'E10%')
+      .execute()
+      .catch(() => {});
+    await db
+      .deleteFrom('orders')
+      .where('user_id', 'in', [CUSTOMER_USER_ID, ADMIN_USER_ID])
+      .execute()
+      .catch(() => {});
+    await db
+      .deleteFrom('inventory')
+      .where('product_id', 'in', (eb) =>
+        eb.selectFrom('products').select('id').where('name', 'like', 'E10%'),
+      )
+      .execute()
+      .catch(() => {});
+    await db
+      .deleteFrom('product_images')
+      .where('url', 'like', '%unsplash%')
+      .execute()
+      .catch(() => {});
+    await db
+      .deleteFrom('products')
+      .where('name', 'like', 'E10%')
+      .execute()
+      .catch(() => {});
+    await db
+      .deleteFrom('coupons')
+      .where('code', 'like', 'E10%')
+      .execute()
+      .catch(() => {});
+    await db
+      .deleteFrom('banners')
+      .where('title', 'like', 'E10%')
+      .execute()
+      .catch(() => {});
+    await db
+      .deleteFrom('users')
+      .where('id', 'in', [ADMIN_USER_ID, CUSTOMER_USER_ID])
+      .execute()
+      .catch(() => {});
   }
 
   before(async () => {
@@ -292,7 +334,11 @@ describe('Epic E10 — Admin Dashboard API', () => {
 
       // Assert archived product is hidden from public API
       const publicRes = await request(`/api/products/${createdProductId}`);
-      assert.equal(publicRes.status, 404, 'archived product must return 404 on public route');
+      assert.equal(
+        publicRes.status,
+        404,
+        'archived product must return 404 on public route',
+      );
     });
   });
 
@@ -373,26 +419,35 @@ describe('Epic E10 — Admin Dashboard API', () => {
     });
 
     it('reorders images', async () => {
-      const res = await request(`/api/admin/products/${testProdId}/images/reorder`, {
-        method: 'PATCH',
-        cookie: adminCookie,
-        body: { imageIds: [imageId2, imageId1] },
-      });
+      const res = await request(
+        `/api/admin/products/${testProdId}/images/reorder`,
+        {
+          method: 'PATCH',
+          cookie: adminCookie,
+          body: { imageIds: [imageId2, imageId1] },
+        },
+      );
       assert.equal(res.status, 200);
 
-      const listRes = await request(`/api/admin/products/${testProdId}/images`, {
-        cookie: adminCookie,
-      });
+      const listRes = await request(
+        `/api/admin/products/${testProdId}/images`,
+        {
+          cookie: adminCookie,
+        },
+      );
       assert.equal(listRes.status, 200);
       assert.equal(listRes.body.data[0].id, imageId2);
       assert.equal(listRes.body.data[1].id, imageId1);
     });
 
     it('deletes an image', async () => {
-      const res = await request(`/api/admin/products/${testProdId}/images/${imageId1}`, {
-        method: 'DELETE',
-        cookie: adminCookie,
-      });
+      const res = await request(
+        `/api/admin/products/${testProdId}/images/${imageId1}`,
+        {
+          method: 'DELETE',
+          cookie: adminCookie,
+        },
+      );
       assert.equal(res.status, 200);
       assert.equal(res.body.data.success, true);
     });
@@ -482,7 +537,9 @@ describe('Epic E10 — Admin Dashboard API', () => {
 
       const couponId = createRes.body.data.id;
 
-      const listRes = await request('/api/admin/coupons', { cookie: adminCookie });
+      const listRes = await request('/api/admin/coupons', {
+        cookie: adminCookie,
+      });
       assert.equal(listRes.status, 200);
       assert.ok(listRes.body.data.some((c: any) => c.code === 'E10FESTIVE20'));
 
@@ -607,24 +664,36 @@ describe('Epic E10 — Admin Dashboard API', () => {
   // ==========================================================================
   describe('ZYV-86: Manage customer accounts', () => {
     it('searches and lists customers without exposing password hashes', async () => {
-      const res = await request('/api/admin/customers', { cookie: adminCookie });
+      const res = await request('/api/admin/customers', {
+        cookie: adminCookie,
+      });
       assert.equal(res.status, 200);
       assert.ok(Array.isArray(res.body.data));
       for (const cust of res.body.data) {
-        assert.equal(cust.password_hash, undefined, 'password_hash must never leak');
+        assert.equal(
+          cust.password_hash,
+          undefined,
+          'password_hash must never leak',
+        );
       }
     });
 
     it('views customer profile and orders history', async () => {
-      const profRes = await request(`/api/admin/customers/${CUSTOMER_USER_ID}`, {
-        cookie: adminCookie,
-      });
+      const profRes = await request(
+        `/api/admin/customers/${CUSTOMER_USER_ID}`,
+        {
+          cookie: adminCookie,
+        },
+      );
       assert.equal(profRes.status, 200);
       assert.equal(profRes.body.data.id, CUSTOMER_USER_ID);
 
-      const ordersRes = await request(`/api/admin/customers/${CUSTOMER_USER_ID}/orders`, {
-        cookie: adminCookie,
-      });
+      const ordersRes = await request(
+        `/api/admin/customers/${CUSTOMER_USER_ID}/orders`,
+        {
+          cookie: adminCookie,
+        },
+      );
       assert.equal(ordersRes.status, 200);
       assert.ok(Array.isArray(ordersRes.body.data));
     });
@@ -646,12 +715,19 @@ describe('Epic E10 — Admin Dashboard API', () => {
         },
       });
       assert.equal(createRes.status, 201);
-      assert.equal(createRes.body.data.title, 'E10 Special Diwali Flag Collection');
+      assert.equal(
+        createRes.body.data.title,
+        'E10 Special Diwali Flag Collection',
+      );
 
       // Assert visible on public site endpoint
       const pubRes = await request('/api/banners');
       assert.equal(pubRes.status, 200);
-      assert.ok(pubRes.body.data.some((b: any) => b.title === 'E10 Special Diwali Flag Collection'));
+      assert.ok(
+        pubRes.body.data.some(
+          (b: any) => b.title === 'E10 Special Diwali Flag Collection',
+        ),
+      );
     });
 
     it('updates policy content block and reflects change publicly', async () => {
@@ -743,7 +819,9 @@ describe('Epic E10 — Admin Dashboard API', () => {
     });
 
     it('lists and updates refund status', async () => {
-      const listRes = await request('/api/admin/refunds', { cookie: adminCookie });
+      const listRes = await request('/api/admin/refunds', {
+        cookie: adminCookie,
+      });
       assert.equal(listRes.status, 200);
       assert.ok(listRes.body.data.some((r: any) => r.id === refundId));
 

@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { db } from '../db/client.js';
 import { asyncHandler } from '../http/async-handler.js';
 import { AppError } from '../http/errors.js';
+import { limiters } from '../http/rate-limit.js';
 import { validate, valid } from '../http/validate.js';
 import { env } from '../config/env.js';
 import { optionalAuth, requireAuth, type RoleName } from '../http/auth.js';
@@ -229,6 +230,7 @@ async function findByIdentifier(identifier: string) {
 /** ZYV-51 — POST /api/auth/register */
 authRouter.post(
   '/register',
+  limiters.auth,
   requireCsrf,
   validate({ body: registerSchema }),
   asyncHandler(async (req: Request, res: Response) => {
@@ -326,6 +328,7 @@ authRouter.post(
 /** ZYV-46 — POST /api/auth/login */
 authRouter.post(
   '/login',
+  limiters.auth,
   requireCsrf,
   validate({ body: loginSchema }),
   asyncHandler(async (req: Request, res: Response) => {
@@ -436,6 +439,7 @@ authRouter.post(
 /** ZYV-50 — POST /api/auth/forgot-password */
 authRouter.post(
   '/forgot-password',
+  limiters.auth,
   requireCsrf,
   validate({ body: forgotSchema }),
   asyncHandler(async (req: Request, res: Response) => {

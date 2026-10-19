@@ -53,5 +53,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 export async function down(db: Kysely<any>): Promise<void> {
   await sql`DROP TABLE IF EXISTS content_blocks`.execute(db);
   await sql`DROP TABLE IF EXISTS banners`.execute(db);
-  await sql`ALTER TABLE products DROP COLUMN IF EXISTS compare_at_price`.execute(db);
+  await sql`ALTER TABLE products DROP COLUMN IF EXISTS compare_at_price`.execute(
+    db,
+  );
 }

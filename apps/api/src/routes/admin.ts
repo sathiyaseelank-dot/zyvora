@@ -257,7 +257,11 @@ adminRouter.post(
       action: 'admin.create.product',
       entityType: 'product',
       entityId: created.id,
-      newValues: { name: created.name, price: created.price, stock: input.stock },
+      newValues: {
+        name: created.name,
+        price: created.price,
+        stock: input.stock,
+      },
     });
 
     res.status(201).json({ data: created });
@@ -313,7 +317,8 @@ adminRouter.patch(
       if (input.compareAtPrice !== undefined)
         valuesToUpdate.compare_at_price = input.compareAtPrice;
       if (input.image !== undefined) valuesToUpdate.image = input.image;
-      if (input.isActive !== undefined) valuesToUpdate.is_active = input.isActive;
+      if (input.isActive !== undefined)
+        valuesToUpdate.is_active = input.isActive;
 
       const prod = await trx
         .updateTable('products')
@@ -392,9 +397,16 @@ const addImageSchema = z.object({
   url: z
     .string()
     .url()
-    .refine((url) => allowedImageExtensions.test(url) || url.includes('unsplash.com') || url.includes('images.'), {
-      message: 'Invalid file type: URL must point to an approved image file (.jpg, .jpeg, .png, .webp, .svg)',
-    }),
+    .refine(
+      (url) =>
+        allowedImageExtensions.test(url) ||
+        url.includes('unsplash.com') ||
+        url.includes('images.'),
+      {
+        message:
+          'Invalid file type: URL must point to an approved image file (.jpg, .jpeg, .png, .webp, .svg)',
+      },
+    ),
   altText: z.string().trim().max(255).optional(),
   displayOrder: z.number().int().min(0).default(0),
   isPrimary: z.boolean().default(false),
@@ -479,7 +491,10 @@ adminRouter.patch(
   validate({ params: uuidParamSchema, body: reorderImagesSchema }),
   asyncHandler(async (req: Request, res: Response) => {
     const { id } = valid<{ id: string }>(req, 'params');
-    const { imageIds } = valid<z.infer<typeof reorderImagesSchema>>(req, 'body');
+    const { imageIds } = valid<z.infer<typeof reorderImagesSchema>>(
+      req,
+      'body',
+    );
 
     await db.transaction().execute(async (trx) => {
       for (let i = 0; i < imageIds.length; i++) {
@@ -560,7 +575,10 @@ adminRouter.patch(
       .updateTable('products')
       .set({
         price: input.price,
-        compare_at_price: input.compareAtPrice !== undefined ? input.compareAtPrice : existing.compare_at_price,
+        compare_at_price:
+          input.compareAtPrice !== undefined
+            ? input.compareAtPrice
+            : existing.compare_at_price,
         updated_at: new Date(),
       })
       .where('id', '=', id)
@@ -571,8 +589,14 @@ adminRouter.patch(
       action: 'admin.product.pricing_update',
       entityType: 'product',
       entityId: id,
-      oldValues: { price: existing.price, compareAtPrice: existing.compare_at_price },
-      newValues: { price: updated.price, compareAtPrice: updated.compareAtPrice },
+      oldValues: {
+        price: existing.price,
+        compareAtPrice: existing.compare_at_price,
+      },
+      newValues: {
+        price: updated.price,
+        compareAtPrice: updated.compareAtPrice,
+      },
     });
 
     res.json({ data: updated });
@@ -598,7 +622,8 @@ adminRouter.patch(
       .where('product_id', '=', id)
       .executeTakeFirst();
 
-    if (!inv) throw new AppError('NOT_FOUND', 'Inventory row not found for product');
+    if (!inv)
+      throw new AppError('NOT_FOUND', 'Inventory row not found for product');
 
     const updated = await db
       .updateTable('inventory')
@@ -615,7 +640,10 @@ adminRouter.patch(
       entityType: 'inventory',
       entityId: inv.id,
       oldValues: { quantity: inv.quantity },
-      newValues: { quantity: updated.quantity, reason: input.reason ?? 'manual adjustment' },
+      newValues: {
+        quantity: updated.quantity,
+        reason: input.reason ?? 'manual adjustment',
+      },
     });
 
     res.json({ data: updated });
@@ -633,10 +661,9 @@ adminRouter.get(
   '/coupons',
   validate({ query: couponListQuerySchema }),
   asyncHandler(async (req: Request, res: Response) => {
-    const { page, limit, status } = valid<z.infer<typeof couponListQuerySchema>>(
-      req,
-      'query',
-    );
+    const { page, limit, status } = valid<
+      z.infer<typeof couponListQuerySchema>
+    >(req, 'query');
     const offset = (page - 1) * limit;
 
     let query = db.selectFrom('coupons').selectAll();
@@ -758,7 +785,11 @@ adminRouter.get(
       baseQuery = baseQuery.where('orders.status', '=', status);
     }
     if (fromDate) {
-      baseQuery = baseQuery.where('orders.created_at', '>=', new Date(fromDate));
+      baseQuery = baseQuery.where(
+        'orders.created_at',
+        '>=',
+        new Date(fromDate),
+      );
     }
     if (toDate) {
       baseQuery = baseQuery.where('orders.created_at', '<=', new Date(toDate));
@@ -851,7 +882,14 @@ adminRouter.get(
 
     const payment = await db
       .selectFrom('payments')
-      .select(['id', 'amount', 'currency', 'status', 'method', 'created_at as createdAt'])
+      .select([
+        'id',
+        'amount',
+        'currency',
+        'status',
+        'method',
+        'created_at as createdAt',
+      ])
       .where('order_id', '=', id)
       .executeTakeFirst();
 
@@ -1252,7 +1290,8 @@ adminRouter.get(
       .where('id', '=', id)
       .executeTakeFirst();
 
-    if (!customer) throw new AppError('NOT_FOUND', 'Customer account not found');
+    if (!customer)
+      throw new AppError('NOT_FOUND', 'Customer account not found');
 
     const orders = await db
       .selectFrom('orders')

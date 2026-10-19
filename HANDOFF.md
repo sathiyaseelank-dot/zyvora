@@ -421,21 +421,21 @@ Sprint 8 (`id=41`, 2027-01-18 → 2027-01-31) holds Epic E10 (Admin Dashboard, `
 
 All 13 Sprint 8 cards are now implemented and **In Review**:
 
-| Card     | What landed                                                                                 | Status    |
-| -------- | ------------------------------------------------------------------------------------------- | --------- |
-| ZYV-84   | Admin RBAC server-side authorization enforcement (all `/api/admin/*` require role=admin)     | In Review |
-| ZYV-94   | Admin API foundational routing, middleware, error envelopes, and request validation         | In Review |
-| ZYV-92   | Product CRUD, active/archived status filtering, soft-archive deletion                       | In Review |
-| ZYV-80   | Product image management, strict file type validation, ordering & primary photo designation | In Review |
-| ZYV-78   | Price & compare_at_price updates, stock adjustments with audit logging, coupon management    | In Review |
-| ZYV-81   | Order search & filtering, customer joins, pagination                                        | In Review |
-| ZYV-85   | Order status state machine enforcement (valid transition matrix, invalid jump rejection)   | In Review |
-| ZYV-95   | Sales & inventory reporting (summary metrics, top products, low stock, JSON + CSV export)   | In Review |
-| ZYV-86   | Customer account administration, scoped customer data (no password hash leaks), order history| In Review |
-| ZYV-90   | Administrative audit logging and read-only audit log inspection endpoint                    | In Review |
-| ZYV-93   | Storefront banners & editable policy/content blocks (`banners` and `content_blocks` tables)  | In Review |
-| ZYV-91   | DB-scoped payment and refund status management (Razorpay gateway integration deferred)     | In Review |
-| ZYV-98   | Admin dashboard UI (`AdminDashboardPage.tsx`) & `RequireAdmin` route guard in `apps/web`    | In Review |
+| Card   | What landed                                                                                   | Status    |
+| ------ | --------------------------------------------------------------------------------------------- | --------- |
+| ZYV-84 | Admin RBAC server-side authorization enforcement (all `/api/admin/*` require role=admin)      | In Review |
+| ZYV-94 | Admin API foundational routing, middleware, error envelopes, and request validation           | In Review |
+| ZYV-92 | Product CRUD, active/archived status filtering, soft-archive deletion                         | In Review |
+| ZYV-80 | Product image management, strict file type validation, ordering & primary photo designation   | In Review |
+| ZYV-78 | Price & compare_at_price updates, stock adjustments with audit logging, coupon management     | In Review |
+| ZYV-81 | Order search & filtering, customer joins, pagination                                          | In Review |
+| ZYV-85 | Order status state machine enforcement (valid transition matrix, invalid jump rejection)      | In Review |
+| ZYV-95 | Sales & inventory reporting (summary metrics, top products, low stock, JSON + CSV export)     | In Review |
+| ZYV-86 | Customer account administration, scoped customer data (no password hash leaks), order history | In Review |
+| ZYV-90 | Administrative audit logging and read-only audit log inspection endpoint                      | In Review |
+| ZYV-93 | Storefront banners & editable policy/content blocks (`banners` and `content_blocks` tables)   | In Review |
+| ZYV-91 | DB-scoped payment and refund status management (Razorpay gateway integration deferred)        | In Review |
+| ZYV-98 | Admin dashboard UI (`AdminDashboardPage.tsx`) & `RequireAdmin` route guard in `apps/web`      | In Review |
 
 ### E8–E14 Reparenting Completed
 

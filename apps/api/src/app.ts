@@ -83,10 +83,12 @@ export function createApp(): Express {
   // after the router can never run for a path the router already handled.
   app.use('/api/auth/reset-password', limiters.reset);
 
-  // Authentication (E6). The stricter auth limiter applies here rather than
-  // the general api limiter: login and registration are the endpoints worth
-  // attacking, and they deserve a far tighter budget than catalog reads.
-  app.use('/api/auth', limiters.auth, authRouter);
+  // Authentication (E6). The group gets the general api limiter, NOT
+  // limiters.auth: the strict credential-stuffing budget belongs on the routes
+  // that accept a password, and it is attached to those individually inside
+  // routes/auth.ts. Mounting it here charged every GET /csrf and GET /me
+  // against the sign-in budget, which locked users out of their own accounts.
+  app.use('/api/auth', limiters.api, authRouter);
 
   // Administrative boundary. Authentication, role check and audit-on-write are
   // applied once here so every admin route added in E10 is protected and

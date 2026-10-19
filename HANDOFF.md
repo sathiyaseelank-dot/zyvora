@@ -410,32 +410,39 @@ curl "https://ycqheltqwgkvxblsqqab.supabase.co/rest/v1/users?select=email,passwo
 Must return `[]` or 401. **Never rows.** Then log into the app and load the
 catalogue to confirm the backend is unaffected.
 
-### P1 — Sprint 6, Sprint 7 & Sprint 8
+### P1 — Sprint 6, Sprint 7, Sprint 8 & Sprint 9
 
 Sprint 6 (`id=39`, 2026-12-21 → 2027-01-03) holds ZYV-58, ZYV-59, ZYV-113,
 **ZYV-105**, **ZYV-106** (all In Review).
 
 Sprint 7 (`id=40`, 2027-01-04 → 2027-01-17) holds **ZYV-40**, **ZYV-83**, **ZYV-1317** (all In Review).
 
-Sprint 8 (`id=41`, 2027-01-18 → 2027-01-31) holds Epic E10 (Admin Dashboard, `ZYV-14`) and `ZYV-98` (E11 Admin Dashboard UI).
+Sprint 8 (`id=41`, 2027-01-18 → 2027-01-31) holds Epic E10 (Admin Dashboard, `ZYV-14`) and `ZYV-98` (E11 Admin Dashboard UI). Closed.
 
-All 13 Sprint 8 cards are now implemented and **In Review**:
+Sprint 9 (`id=42`, 2027-02-01 → 2027-02-14) holds Epics E7 (`ZYV-6`), E9 (`ZYV-8`), and storefront checkout/account cards.
 
-| Card   | What landed                                                                                   | Status    |
-| ------ | --------------------------------------------------------------------------------------------- | --------- |
-| ZYV-84 | Admin RBAC server-side authorization enforcement (all `/api/admin/*` require role=admin)      | In Review |
-| ZYV-94 | Admin API foundational routing, middleware, error envelopes, and request validation           | In Review |
-| ZYV-92 | Product CRUD, active/archived status filtering, soft-archive deletion                         | In Review |
-| ZYV-80 | Product image management, strict file type validation, ordering & primary photo designation   | In Review |
-| ZYV-78 | Price & compare_at_price updates, stock adjustments with audit logging, coupon management     | In Review |
-| ZYV-81 | Order search & filtering, customer joins, pagination                                          | In Review |
-| ZYV-85 | Order status state machine enforcement (valid transition matrix, invalid jump rejection)      | In Review |
-| ZYV-95 | Sales & inventory reporting (summary metrics, top products, low stock, JSON + CSV export)     | In Review |
-| ZYV-86 | Customer account administration, scoped customer data (no password hash leaks), order history | In Review |
-| ZYV-90 | Administrative audit logging and read-only audit log inspection endpoint                      | In Review |
-| ZYV-93 | Storefront banners & editable policy/content blocks (`banners` and `content_blocks` tables)   | In Review |
-| ZYV-91 | DB-scoped payment and refund status management (Razorpay gateway integration deferred)        | In Review |
-| ZYV-98 | Admin dashboard UI (`AdminDashboardPage.tsx`) & `RequireAdmin` route guard in `apps/web`      | In Review |
+All 16 Sprint 9 cards are implemented and **In Review**:
+
+| Card   | What landed                                                                                                         | Status    |
+| ------ | ------------------------------------------------------------------------------------------------------------------- | --------- |
+| ZYV-61 | `POST /api/orders` — authenticated, stock-reserved, coupon-enabled, idempotent order creation                       | In Review |
+| ZYV-64 | Step 1 delivery address form in checkout (`CheckoutPage.tsx`)                                                       | In Review |
+| ZYV-74 | Saved address book selector & CRUD for authenticated customer accounts                                              | In Review |
+| ZYV-60 | Step 2 order review with server-authoritative totals (`/api/checkout/validate`)                                     | In Review |
+| ZYV-62 | Step 3 payment selection with standard deferred payment reservation (Razorpay gateway seam preserved clean)         | In Review |
+| ZYV-63 | Guest Pay Now redirect to sign in / registration with preserve parameter                                            | In Review |
+| ZYV-66 | Seamless checkout state preservation across authentication via `sessionStorage` (`zyvora_checkout_state`)           | In Review |
+| ZYV-73 | Duplicate order prevention via `checkout_session_id` idempotency token                                              | In Review |
+| ZYV-77 | `GET /api/orders` & `GET /api/orders/:id` — customer-scoped queries, items, tracking & snapshots                    | In Review |
+| ZYV-89 | `POST /api/orders/:id/cancel` — cancellation policy enforcement (pending/confirmed/processing only, releases stock) | In Review |
+| ZYV-87 | `POST /api/orders/:id/return` — return policy enforcement (delivered orders only, records refund request)           | In Review |
+| ZYV-79 | Customer profile update (`PATCH /api/auth/profile`) & Argon2id password change (`POST /api/auth/change-password`)   | In Review |
+| ZYV-82 | Order confirmation page UI (`OrderConfirmationPage.tsx`) at `/order-confirmation/:id`                               | In Review |
+| ZYV-88 | My Orders tab with shipment tracking and cancel/return actions in `AccountPage.tsx`                                 | In Review |
+| ZYV-97 | Customer account dashboard UI (`AccountPage.tsx`) with Orders, Addresses, and Profile tabs                          | In Review |
+| ZYV-99 | 3-step checkout UI flow (`CheckoutPage.tsx`) at `/checkout`                                                         | In Review |
+
+Epics E7 (`ZYV-6`), E9 (`ZYV-8`), and E10 (`ZYV-14`) are all transitioned to **In Review**.
 
 ### E8–E14 Reparenting Completed
 
@@ -460,13 +467,16 @@ and UUID ordering is random, so concurrent fixture insertion made it flaky.
 
 ### Mutation gates
 
-Three scripts, all required to exit 0:
+Four scripts, all required to exit 0:
 
 ```bash
 apps/api/scripts/mutate-catalog.sh     # 19/19 caught
 apps/web/scripts/mutate-storefront.sh  # 17/17 caught
 apps/api/scripts/mutate-admin.sh       # 6/6 caught (security mutants)
+apps/api/scripts/mutate-order.sh       # 6/6 caught (order security & lifecycle mutants)
 ```
+
+Total: **48/48 mutants caught (100% kill rate across 4 gates)**.
 
 They exit `2` for a mutant that could not be applied, and treat a mutant that
 only **breaks the build** as inconclusive rather than caught. That check exists
@@ -520,7 +530,7 @@ Full CI gate:
 npm run typecheck && npm run lint && npm test
 ```
 
-- 289 API tests (`apps/api`), 91 web tests (`apps/web`) — 380 total passed
+- 308 API tests (`apps/api`), 99 web tests (`apps/web`) — 407 total passed (0 failures)
 - CI runs **Node 24** — undici 8 requires ≥22.19
 - vitest 3 → 4 on tinypool (critical)
 - CI has an explicit "assert the test suites actually executed" step, which

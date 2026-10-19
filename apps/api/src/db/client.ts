@@ -158,6 +158,12 @@ export interface OrderTable {
   id: Generated<string>;
   user_id: string;
   checkout_session_id: string;
+  shipping_address_id: string | null;
+  shipping_address_snapshot: any | null;
+  cancel_reason: string | null;
+  cancelled_at: Date | null;
+  return_reason: string | null;
+  return_requested_at: Date | null;
   subtotal: number;
   shipping: number;
   tax: number;

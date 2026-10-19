@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 import { ButtonLink } from '../components/Button';
@@ -9,7 +10,9 @@ import { ButtonLink } from '../components/Button';
  * one place that owns it, rather than each page reaching for `document.title`.
  */
 export function NotFoundPage({ onTitle }: { onTitle: (t: string) => void }) {
-  onTitle('Page not found — ZYVORA');
+  useEffect(() => {
+    onTitle('Page not found — ZYVORA');
+  }, [onTitle]);
 
   return (
     <div className="mx-auto max-w-[560px] px-5 py-24 text-center sm:py-32">

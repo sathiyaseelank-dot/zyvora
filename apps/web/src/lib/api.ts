@@ -634,13 +634,37 @@ export function changePassword(
 
 /* ----------------------------------------------------------- content blocks - */
 
+export interface ContentBlock {
+  id: string;
+  slug: string;
+  title: string;
+  body: string;
+}
+
 export function fetchContentBlock(
   slug: string,
   signal?: AbortSignal,
-): Promise<{ id: string; slug: string; title: string; body: string }> {
-  return request<{
-    data: { id: string; slug: string; title: string; body: string };
-  }>(`/api/content-blocks/${encodeURIComponent(slug)}`, { signal }).then(
+): Promise<ContentBlock> {
+  return request<{ data: ContentBlock }>(
+    `/api/content/${encodeURIComponent(slug)}`,
+    { signal },
+  ).then((r) => r.data);
+}
+
+/* ----------------------------------------------------------------- banners - */
+
+export interface Banner {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  link_url: string | null;
+  image_url: string | null;
+  display_order: number;
+  is_active: boolean;
+}
+
+export function fetchBanners(signal?: AbortSignal): Promise<Banner[]> {
+  return request<{ data: Banner[] }>('/api/banners', { signal }).then(
     (r) => r.data,
   );
 }

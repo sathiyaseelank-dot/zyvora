@@ -22,7 +22,9 @@ import { useSession } from '../lib/session';
 const NAV = [
   { to: '/', label: 'Flags', end: true },
   { to: '/catalog', label: 'All Flags', end: false },
-  { to: '/about', label: 'Craft', end: false },
+  { to: '/about', label: 'About & Craft', end: false },
+  { to: '/faq', label: 'FAQ', end: false },
+  { to: '/contact', label: 'Contact', end: false },
 ];
 
 export function Header() {
@@ -66,14 +68,16 @@ export function Header() {
 
       <header className="sticky top-0 z-50 border-b border-rule bg-paper/95 backdrop-blur-sm">
         <div className="mx-auto flex max-w-[1400px] items-center gap-6 px-5 py-4 sm:px-8">
-          <Link
-            to="/"
-            className="font-display text-[22px] font-bold tracking-[0.17em] whitespace-nowrap"
-          >
-            ZYVORA
-            <sup className="ml-0.5 align-super text-[8px] font-bold tracking-normal text-brass-deep">
-              ®
-            </sup>
+          <Link to="/" className="flex flex-col whitespace-nowrap">
+            <span className="font-display text-[22px] font-bold tracking-[0.17em] leading-none">
+              ZYVORA
+              <sup className="ml-0.5 align-super text-[8px] font-bold tracking-normal text-brass-deep">
+                ®
+              </sup>
+            </span>
+            <span className="hidden text-[7.5px] font-semibold tracking-[0.15em] text-ink-muted uppercase sm:inline-block">
+              Quality | Style | For Your World
+            </span>
           </Link>
 
           <nav aria-label="Primary" className="ml-4 hidden md:block">

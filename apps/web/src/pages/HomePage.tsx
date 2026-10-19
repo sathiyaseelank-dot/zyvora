@@ -2,33 +2,43 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { ProductSummary } from '@zyvora/types';
 
-import { fetchProducts } from '../lib/api';
+import heroAsset from '../assets/hero.png';
+import { Banner, fetchBanners, fetchProducts } from '../lib/api';
 import { ButtonLink } from '../components/Button';
 import { ProductImage } from '../components/ProductImage';
 
 /**
- * Home page (ZYV-96 shell, ZYV-112 structure).
+ * Home page (ZYV-96 shell, ZYV-107 hero banner, ZYV-108 genuine reviews, ZYV-112 structure).
  *
- * Deliberately renders from the live catalog so the design system is judged
- * against real data — the seed set — rather than lorem. If the API is down the
- * page still lays out correctly; the product strip simply shows its skeleton.
+ * Requirements:
+ *  - ZYV-107: Main promotional banner assets produced, responsive crops for mobile and desktop,
+ *    advertisement used as inspiration rather than the whole page.
+ *  - ZYV-108: Reviews section shown ONLY when genuine reviews exist. Section hidden when no
+ *    approved reviews. Shows rating and count only when real. No fabricated testimonials.
+ *  - ZYV-112: Full home structure with featured products, features, Why Choose ZYVORA, FAQ preview.
  */
 
-function ProductStrip() {
+function ProductStrip({
+  onProductsLoaded,
+}: {
+  onProductsLoaded?: (products: ProductSummary[]) => void;
+}) {
   const [products, setProducts] = useState<ProductSummary[] | null>(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
-    fetchProducts({ pageSize: 3 }, controller.signal)
-      .then((r) => setProducts(r.data))
+    fetchProducts({ pageSize: 6 }, controller.signal)
+      .then((r) => {
+        setProducts(r.data);
+        onProductsLoaded?.(r.data);
+      })
       .catch((err) => {
-        // An aborted fetch is the effect cleaning up, not a failure.
         if (err instanceof DOMException && err.name === 'AbortError') return;
         setFailed(true);
       });
     return () => controller.abort();
-  }, []);
+  }, [onProductsLoaded]);
 
   if (failed) {
     return (
@@ -56,10 +66,10 @@ function ProductStrip() {
 
   return (
     <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
-      {products.map((product) => (
+      {products.slice(0, 3).map((product) => (
         <Link
           key={product.id}
-          to={`/catalog/${product.id}`}
+          to={`/products/${product.id}`}
           className="group block min-w-0"
         >
           <div className="aspect-4/5 overflow-hidden bg-paper-sunk">
@@ -78,6 +88,12 @@ function ProductStrip() {
               {formatPrice(product.price)}
             </p>
           </div>
+          {product.rating ? (
+            <p className="mt-1 text-[11px] font-medium text-brass-deep">
+              {product.rating.average} ★{' '}
+              <span className="text-ink-muted">({product.rating.count})</span>
+            </p>
+          ) : null}
         </Link>
       ))}
     </div>
@@ -99,11 +115,75 @@ const TICKER = [
   '30-day returns',
 ];
 
+const WHY_CHOOSE_ITEMS = [
+  {
+    title: 'Aerodynamic Strength',
+    description:
+      'Engineered specifically for high-speed highway wind load, tested to remain firmly attached and fray-resistant up to 120 km/h.',
+    icon: '⚡',
+  },
+  {
+    title: 'UV-Stabilised Cloth',
+    description:
+      'Durable 110 GSM polyester treated with UV-resistant dyes to ensure colours remain vibrant through intense tropical sunlight.',
+    icon: '☀️',
+  },
+  {
+    title: 'Triple-Stitched Hem',
+    description:
+      'The fly edge is triple-stitched on all three outer sides with bonded thread so the edge under tension does not unravel.',
+    icon: '🧵',
+  },
+  {
+    title: 'Tool-Free Mounting',
+    description:
+      'Heavy-duty rubberised aluminium clips install in seconds on car window glass or motorcycle handlebar mounts without scratches.',
+    icon: '🔧',
+  },
+];
+
+const PREVIEW_FAQS = [
+  {
+    q: 'Will the flag withstand highway speeds and heavy rain?',
+    a: 'Yes. Every ZYVORA flag is constructed from 110 GSM UV-stabilised polyester with triple-stitched outer hems and tested to withstand highway winds up to 120 km/h in wet and dry conditions.',
+  },
+  {
+    q: 'Will the window clip damage my car glass or tint film?',
+    a: 'No. The mounting clip features anti-slip rubberised cushions on all contact points to protect automotive glass and window tints from scratches or pressure marks.',
+  },
+  {
+    q: 'Can the flag be washed?',
+    a: 'Yes. Our flags can be gently hand-washed or cold-machine-washed using mild detergent. The fade-resistant dyes are colour-fast and will not shrink.',
+  },
+];
+
 export function HomePage() {
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [ratedProducts, setRatedProducts] = useState<ProductSummary[]>([]);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchBanners(controller.signal)
+      .then((b) => setBanners(b))
+      .catch(() => {
+        // Fallback silently if banner endpoint is unavailable
+      });
+    return () => controller.abort();
+  }, []);
+
+  function handleProductsLoaded(items: ProductSummary[]) {
+    const genuine = items.filter(
+      (p) =>
+        p.rating && typeof p.rating.count === 'number' && p.rating.count > 0,
+    );
+    setRatedProducts(genuine);
+  }
+
   return (
     <>
-      {/* Hero — an ink ground, so the whole page does not read as one block. */}
-      <section className="on-ground grid min-h-[520px] bg-ground text-on-ground lg:grid-cols-[44fr_56fr]">
+      {/* Hero section with promotional visual and branding (ZYV-107, ZYV-112) */}
+      <section className="on-ground grid min-h-[520px] bg-ground text-on-ground lg:grid-cols-[46fr_54fr]">
         <div className="relative z-10 flex flex-col items-start justify-center px-6 py-16 sm:px-10 lg:px-[clamp(2rem,8vw,7.5rem)]">
           <p className="eyebrow">Premium car &amp; bike flags</p>
           <h1 className="font-display text-[clamp(3.25rem,7vw,5.75rem)] leading-[0.94]">
@@ -128,22 +208,48 @@ export function HomePage() {
           </div>
         </div>
 
-        {/* CSS-only flag: three skewed bands on a pole. No image needed. */}
-        <div
-          className="relative hidden min-h-[420px] overflow-hidden bg-gradient-to-br from-[#2a2927] to-[#101010] lg:block"
-          aria-hidden="true"
-        >
-          <div className="absolute top-[13%] right-[15%] h-[420px] w-[420px] rounded-full bg-[#bc8e3e]/20 blur-2xl" />
-          <div className="absolute top-[23%] right-[3%] z-1 h-[54%] w-[78%] origin-top-right -skew-y-[9deg] -rotate-[7deg] drop-shadow-[0_24px_25px_rgba(0,0,0,0.5)]">
-            <div className="absolute inset-y-0 left-[4%] w-[38%] -skew-x-[10deg] bg-flag-yellow [clip-path:polygon(0_5%,100%_0,83%_97%,0_82%)]" />
-            <div className="absolute inset-y-0 left-[31%] w-[38%] -skew-x-[10deg] bg-flag-red [clip-path:polygon(15%_0,100%_9%,82%_100%,0_89%)]" />
-            <div className="absolute inset-y-0 left-[57%] w-[38%] -skew-x-[10deg] bg-flag-cream [clip-path:polygon(17%_5%,100%_16%,100%_85%,0_97%)]" />
-          </div>
-          <div className="absolute top-[-12%] right-[4%] h-[135%] w-[5px] rotate-[2deg] bg-[#d4c39e]" />
+        {/* Responsive Hero Banner Asset (ZYV-107) */}
+        <div className="relative flex min-h-[360px] items-center justify-center overflow-hidden bg-gradient-to-br from-[#2a2927] to-[#101010] p-6 lg:min-h-[480px]">
+          <div
+            className="absolute top-[13%] right-[15%] h-[420px] w-[420px] rounded-full bg-[#bc8e3e]/20 blur-2xl"
+            aria-hidden="true"
+          />
+          <img
+            src={heroAsset}
+            alt="ZYVORA Premium Car and Bike Flag Banner"
+            className="relative z-1 max-h-[380px] w-auto max-w-full rounded-sm object-contain shadow-2xl drop-shadow-[0_20px_25px_rgba(0,0,0,0.6)]"
+          />
         </div>
       </section>
 
-      {/* Ticker */}
+      {/* Promotional Banners from Database if published (ZYV-107) */}
+      {banners.length > 0 ? (
+        <section
+          aria-label="Promotional announcements"
+          className="border-b border-rule bg-paper-sunk py-3 px-5 text-center sm:px-8"
+        >
+          <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-center gap-6 text-[12px]">
+            {banners.map((b) => (
+              <div key={b.id} className="flex items-center gap-2">
+                <span className="font-bold text-brass-deep uppercase">
+                  {b.title}:
+                </span>
+                <span className="text-ink-soft">{b.subtitle}</span>
+                {b.link_url ? (
+                  <Link
+                    to={b.link_url}
+                    className="ml-1 font-semibold text-brass-deep underline hover:text-ink"
+                  >
+                    Explore →
+                  </Link>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {/* Ticker bar */}
       <div className="overflow-hidden bg-brass py-3">
         <ul className="flex justify-around gap-8 whitespace-nowrap">
           {TICKER.map((item) => (
@@ -157,7 +263,7 @@ export function HomePage() {
         </ul>
       </div>
 
-      {/* Featured */}
+      {/* Featured Collection Strip */}
       <section className="mx-auto max-w-[1400px] px-5 py-20 sm:px-8">
         <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
           <div>
@@ -174,10 +280,95 @@ export function HomePage() {
           </Link>
         </div>
 
-        <ProductStrip />
+        <ProductStrip onProductsLoaded={handleProductsLoaded} />
       </section>
 
-      {/* Craft */}
+      {/* Why Choose ZYVORA Section (ZYV-112) */}
+      <section className="border-y border-rule bg-paper-sunk py-20">
+        <div className="mx-auto max-w-[1400px] px-5 sm:px-8">
+          <div className="max-w-[700px]">
+            <p className="eyebrow">The ZYVORA standard</p>
+            <h2 className="font-display text-[clamp(2.25rem,5vw,3.75rem)]">
+              Why choose <em className="text-brass-deep italic">ZYVORA</em>
+            </h2>
+            <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
+              Most novelty flags disintegrate after a single highway journey. We
+              re-engineered vehicle flags from thread to clip.
+            </p>
+          </div>
+
+          <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {WHY_CHOOSE_ITEMS.map((item) => (
+              <div
+                key={item.title}
+                className="border border-rule bg-paper p-6 transition-all hover:border-brass/40"
+              >
+                <span className="text-[28px]" aria-hidden="true">
+                  {item.icon}
+                </span>
+                <h3 className="mt-4 font-display text-[18px] font-semibold">
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-[13px] leading-relaxed text-ink-muted">
+                  {item.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Customer Reviews — Rendered ONLY when genuine approved reviews exist (ZYV-108) */}
+      {ratedProducts.length > 0 ? (
+        <section
+          aria-labelledby="genuine-reviews-heading"
+          className="mx-auto max-w-[1400px] px-5 py-20 sm:px-8"
+        >
+          <div className="max-w-[650px]">
+            <p className="eyebrow">Verified Customers</p>
+            <h2
+              id="genuine-reviews-heading"
+              className="font-display text-[clamp(2.25rem,5vw,3.75rem)]"
+            >
+              Genuine <em className="text-brass-deep italic">Reviews</em>
+            </h2>
+            <p className="mt-3 text-[14px] text-ink-soft">
+              Real feedback from verified purchasers. No fabricated ratings or
+              fictitious quotes.
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {ratedProducts.map((p) => (
+              <div
+                key={p.id}
+                className="border border-rule bg-paper p-6 shadow-sm"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="rounded bg-brass/20 px-2.5 py-1 text-[11px] font-bold text-ground-deep">
+                    {p.rating?.average} ★
+                  </span>
+                  <span className="text-[11px] text-ink-muted">
+                    {p.rating?.count} verified{' '}
+                    {p.rating?.count === 1 ? 'review' : 'reviews'}
+                  </span>
+                </div>
+                <h3 className="mt-4 font-display text-[16px] font-semibold text-ink">
+                  {p.name}
+                </h3>
+                <Link
+                  to={`/products/${p.id}`}
+                  className="mt-4 inline-block text-[11px] font-bold tracking-[0.12em] text-brass-deep uppercase hover:underline"
+                >
+                  View Product Details →
+                </Link>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {/* Our Craft section */}
       <section className="grid bg-paper-sunk lg:grid-cols-2">
         <div
           className="min-h-[320px] bg-gradient-to-br from-[#3a3733] to-[#1a1918] lg:min-h-[460px]"
@@ -211,6 +402,55 @@ export function HomePage() {
           </ul>
           <ButtonLink to="/about" variant="outline" size="md" className="mt-9">
             Read our story
+          </ButtonLink>
+        </div>
+      </section>
+
+      {/* FAQ Preview Section (ZYV-112, ZYV-102) */}
+      <section className="mx-auto max-w-[1000px] px-5 py-20 sm:px-8">
+        <div className="text-center">
+          <p className="eyebrow">Got questions?</p>
+          <h2 className="font-display text-[clamp(2.25rem,5vw,3.5rem)]">
+            Frequently Asked Questions
+          </h2>
+          <p className="mx-auto mt-3 max-w-[500px] text-[14px] text-ink-soft">
+            Answers to common questions regarding vehicle fitment, highway
+            durability, and flag care.
+          </p>
+        </div>
+
+        <div className="mt-12 divide-y divide-rule border-y border-rule">
+          {PREVIEW_FAQS.map((faq, idx) => {
+            const isOpen = openFaq === idx;
+            return (
+              <div key={faq.q} className="py-5">
+                <button
+                  type="button"
+                  onClick={() => setOpenFaq(isOpen ? null : idx)}
+                  aria-expanded={isOpen}
+                  className="flex w-full items-center justify-between gap-4 text-left font-display text-[17px] font-semibold text-ink transition-colors hover:text-brass-deep"
+                >
+                  <span>{faq.q}</span>
+                  <span
+                    className="text-[18px] text-brass-deep"
+                    aria-hidden="true"
+                  >
+                    {isOpen ? '−' : '+'}
+                  </span>
+                </button>
+                {isOpen ? (
+                  <p className="mt-3 text-[14px] leading-relaxed text-ink-soft">
+                    {faq.a}
+                  </p>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-8 text-center">
+          <ButtonLink to="/faq" variant="outline" size="md">
+            View all frequently asked questions →
           </ButtonLink>
         </div>
       </section>

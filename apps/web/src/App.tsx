@@ -17,6 +17,10 @@ import { AccountPage } from './pages/AccountPage';
 import { CartPage } from './pages/CartPage';
 import { CatalogPage } from './pages/CatalogPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
+import { AboutPage } from './pages/AboutPage';
+import { ContactPage } from './pages/ContactPage';
+import { FaqPage } from './pages/FaqPage';
+import { PolicyPage } from './pages/PolicyPage';
 import { CraftPage } from './pages/CraftPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
@@ -60,8 +64,55 @@ export function App() {
             path="/order-confirmation/:id"
             element={<OrderConfirmationPage />}
           />
-          {/* Was rendering <CatalogPage /> under the "Craft" label. */}
-          <Route path="/about" element={<CraftPage />} />
+          {/* Informational and Brand Pages (ZYV-102, ZYV-103, ZYV-104) */}
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/craft" element={<CraftPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/faq" element={<FaqPage />} />
+
+          {/* Policy Pages (ZYV-111, ZYV-114, ZYV-115, ZYV-118, ZYV-119) */}
+          <Route
+            path="/shipping-policy"
+            element={<PolicyPage slug="shipping-policy" onTitle={setTitle} />}
+          />
+          <Route
+            path="/shipping"
+            element={<PolicyPage slug="shipping-policy" onTitle={setTitle} />}
+          />
+          <Route
+            path="/cancellation-policy"
+            element={
+              <PolicyPage slug="cancellation-policy" onTitle={setTitle} />
+            }
+          />
+          <Route
+            path="/return-refund-policy"
+            element={
+              <PolicyPage slug="return-refund-policy" onTitle={setTitle} />
+            }
+          />
+          <Route
+            path="/returns"
+            element={
+              <PolicyPage slug="return-refund-policy" onTitle={setTitle} />
+            }
+          />
+          <Route
+            path="/privacy-policy"
+            element={<PolicyPage slug="privacy-policy" onTitle={setTitle} />}
+          />
+          <Route
+            path="/terms"
+            element={
+              <PolicyPage slug="terms-and-conditions" onTitle={setTitle} />
+            }
+          />
+          <Route
+            path="/terms-and-conditions"
+            element={
+              <PolicyPage slug="terms-and-conditions" onTitle={setTitle} />
+            }
+          />
 
           <Route
             path="/login"

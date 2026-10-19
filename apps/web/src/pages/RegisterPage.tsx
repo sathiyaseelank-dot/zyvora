@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { ApiRequestError } from '../lib/api';
 import { useSession } from '../lib/session';
@@ -195,7 +195,25 @@ export function RegisterPage() {
             htmlFor="accept-terms"
             className="text-[13px] leading-relaxed text-ink-soft"
           >
-            I agree to the Terms and Conditions and Privacy Policy.
+            I agree to the{' '}
+            <Link
+              to="/terms"
+              target="_blank"
+              rel="noreferrer"
+              className="text-brass-deep underline hover:text-ink"
+            >
+              Terms and Conditions
+            </Link>{' '}
+            and{' '}
+            <Link
+              to="/privacy-policy"
+              target="_blank"
+              rel="noreferrer"
+              className="text-brass-deep underline hover:text-ink"
+            >
+              Privacy Policy
+            </Link>
+            .
           </label>
         </div>
         {fieldErrors.acceptTerms ? (

@@ -390,6 +390,11 @@ authRouter.post(
  * a JS-readable cookie; the client echoes the body value in the header.
  */
 authRouter.get('/csrf', (_req: Request, res: Response) => {
+  // Never cache: a cached body would hand out a stale token while the
+  // Set-Cookie header updates the cookie, desynchronising the two halves of
+  // the double-submit and producing "Your session security token expired".
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.set('Pragma', 'no-cache');
   const token = issueCsrfCookie(res);
   res.json({ data: { csrfToken: token } });
 });

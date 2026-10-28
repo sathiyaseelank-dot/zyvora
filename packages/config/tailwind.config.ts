@@ -35,8 +35,8 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        heading: ['Playfair Display', 'Georgia', 'serif'],
+        sans: ['Poppins', 'Inter', 'system-ui', 'sans-serif'],
+        heading: ['Poppins', 'Playfair Display', 'Georgia', 'serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       boxShadow: {

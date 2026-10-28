@@ -101,7 +101,7 @@ export function RegisterPage() {
 
   return (
     <AuthLayout
-      eyebrow="Join ZYVORA"
+      eyebrow="Join GrownLeaf"
       title="Create your account"
       intro="One account for orders, saved addresses and early access to new flag drops."
       footer={

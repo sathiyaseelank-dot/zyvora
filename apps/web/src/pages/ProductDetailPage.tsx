@@ -104,8 +104,8 @@ export function ProductDetailPage({
   // Title goes through the same callback every other page uses, so
   // document.title is set in exactly one place.
   useEffect(() => {
-    if (missing) onTitle('Not found — ZYVORA');
-    else if (product) onTitle(`${product.name} — ZYVORA`);
+    if (missing) onTitle('Not found — GrownLeaf');
+    else if (product) onTitle(`${product.name} — GrownLeaf`);
   }, [missing, product, onTitle]);
 
   if (missing) {

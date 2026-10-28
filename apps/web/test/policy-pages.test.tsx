@@ -162,7 +162,7 @@ describe('Policy, Brand and Support Pages (ZYV-102, ZYV-103, ZYV-104, ZYV-111, Z
       expect(
         screen.getByRole('heading', {
           level: 1,
-          name: /Get in touch with ZYVORA/i,
+          name: /Get in touch with GrownLeaf/i,
         }),
       ).toBeTruthy();
       expect(screen.getByText(/support@zyvora.com/i)).toBeTruthy();

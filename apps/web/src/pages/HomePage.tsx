@@ -112,7 +112,6 @@ const TICKER = [
   'Free shipping over ₹2,000',
   'Hand-finished in Chennai',
   'Weatherproof to 120 km/h',
-  '30-day returns',
 ];
 
 const WHY_CHOOSE_ITEMS = [
@@ -145,7 +144,7 @@ const WHY_CHOOSE_ITEMS = [
 const PREVIEW_FAQS = [
   {
     q: 'Will the flag withstand highway speeds and heavy rain?',
-    a: 'Yes. Every ZYVORA flag is constructed from 110 GSM UV-stabilised polyester with triple-stitched outer hems and tested to withstand highway winds up to 120 km/h in wet and dry conditions.',
+    a: 'Yes. Every GrownLeaf flag is constructed from 110 GSM UV-stabilised polyester with triple-stitched outer hems and tested to withstand highway winds up to 120 km/h in wet and dry conditions.',
   },
   {
     q: 'Will the window clip damage my car glass or tint film?',
@@ -216,7 +215,7 @@ export function HomePage() {
           />
           <img
             src={heroAsset}
-            alt="ZYVORA Premium Car and Bike Flag Banner"
+            alt="GrownLeaf Premium Car and Bike Flag Banner"
             className="relative z-1 max-h-[380px] w-auto max-w-full rounded-sm object-contain shadow-2xl drop-shadow-[0_20px_25px_rgba(0,0,0,0.6)]"
           />
         </div>
@@ -267,7 +266,6 @@ export function HomePage() {
       <section className="mx-auto max-w-[1400px] px-5 py-20 sm:px-8">
         <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
           <div>
-            <p className="eyebrow">The collection</p>
             <h2 className="font-display text-[clamp(2.25rem,5vw,3.75rem)]">
               Flags worth <em className="text-brass-deep italic">flying</em>
             </h2>
@@ -283,13 +281,13 @@ export function HomePage() {
         <ProductStrip onProductsLoaded={handleProductsLoaded} />
       </section>
 
-      {/* Why Choose ZYVORA Section (ZYV-112) */}
+      {/* Why Choose GrownLeaf Section (ZYV-112) */}
       <section className="border-y border-rule bg-paper-sunk py-20">
         <div className="mx-auto max-w-[1400px] px-5 sm:px-8">
           <div className="max-w-[700px]">
-            <p className="eyebrow">The ZYVORA standard</p>
+            <p className="eyebrow">The GrownLeaf standard</p>
             <h2 className="font-display text-[clamp(2.25rem,5vw,3.75rem)]">
-              Why choose <em className="text-brass-deep italic">ZYVORA</em>
+              Why choose <em className="text-brass-deep italic">GrownLeaf</em>
             </h2>
             <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
               Most novelty flags disintegrate after a single highway journey. We

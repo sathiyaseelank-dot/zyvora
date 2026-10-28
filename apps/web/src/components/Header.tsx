@@ -69,14 +69,17 @@ export function Header() {
       <header className="sticky top-0 z-50 border-b border-rule bg-paper/95 backdrop-blur-sm">
         <div className="mx-auto flex max-w-[1400px] items-center gap-6 px-5 py-4 sm:px-8">
           <Link to="/" className="flex flex-col whitespace-nowrap">
-            <span className="font-display text-[22px] font-bold tracking-[0.17em] leading-none">
-              ZYVORA
-              <sup className="ml-0.5 align-super text-[8px] font-bold tracking-normal text-brass-deep">
+            <span className="font-display text-[22px] font-bold italic tracking-tight leading-none text-ink">
+              Grown<span className="text-brass-deep not-italic font-semibold">Leaf</span>
+              <sup className="ml-0.5 align-super text-[8px] font-bold not-italic tracking-normal text-brass-deep">
                 ®
               </sup>
             </span>
-            <span className="hidden text-[7.5px] font-semibold tracking-[0.15em] text-ink-muted uppercase sm:inline-block">
-              Quality | Style | For Your World
+            <span className="hidden text-[8px] font-medium tracking-wide text-ink-muted sm:inline-block">
+              <span className="italic">Explore</span>{' '}
+              <span className="font-bold text-brass-deep not-italic">
+                Premium ✦
+              </span>
             </span>
           </Link>
 

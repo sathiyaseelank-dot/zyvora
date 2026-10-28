@@ -141,7 +141,7 @@ export function AdminDashboardPage({
   const [archiveSubmitting, setArchiveSubmitting] = useState(false);
 
   useEffect(() => {
-    onTitle?.('Admin Console — ZYVORA');
+    onTitle?.('Admin Console — GrownLeaf');
   }, [onTitle]);
 
   // Load categories once on mount or when products tab opens

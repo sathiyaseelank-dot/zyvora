@@ -36,7 +36,7 @@ import { OrderConfirmationPage } from './pages/OrderConfirmationPage';
  * than the banner.
  */
 export function App() {
-  const [title, setTitle] = useState('ZYVORA — Premium Car & Bike Flags');
+  const [title, setTitle] = useState('GrownLeaf — Premium Car & Bike Flags');
 
   useEffect(() => {
     document.title = title;

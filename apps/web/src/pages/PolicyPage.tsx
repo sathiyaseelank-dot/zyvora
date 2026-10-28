@@ -91,7 +91,7 @@ export function PolicyPage({
     let active = true;
 
     if (onTitle) {
-      onTitle(`${title} — ZYVORA`);
+      onTitle(`${title} — GrownLeaf`);
     }
 
     fetchContentBlock(slug)
@@ -143,7 +143,7 @@ export function PolicyPage({
           </span>
         </div>
         <p className="text-xs text-ink-muted mt-3">
-          Last revised: February 2027 • Governed by ZYVORA customer protection
+          Last revised: February 2027 • Governed by GrownLeaf customer protection
           standards
         </p>
       </div>

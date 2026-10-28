@@ -35,24 +35,10 @@ export function ContactPage() {
 
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 sm:py-16">
-      <nav aria-label="Breadcrumb" className="mb-8">
-        <ol className="flex items-center gap-2 text-[11px] font-bold tracking-[0.14em] text-ink-muted uppercase">
-          <li>
-            <Link to="/" className="transition-colors hover:text-brass-deep">
-              Home
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li className="text-ink" aria-current="page">
-            Contact Us
-          </li>
-        </ol>
-      </nav>
-
       <div className="max-w-[760px]">
         <p className="eyebrow">Customer Support &amp; Enquiries</p>
         <h1 className="font-display text-[clamp(2.25rem,5vw,3.5rem)] leading-[1.05]">
-          Get in touch with <em className="text-brass-deep italic">ZYVORA</em>
+          Get in touch with <em className="text-brass-deep italic">GrownLeaf</em>
         </h1>
         <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
           Have a question about vehicle fitment, bulk orders, or shipping times?
@@ -66,7 +52,7 @@ export function ContactPage() {
           Business Details &amp; Transparency Notice
         </h2>
         <p className="mt-2 text-[12px] leading-relaxed text-ink-muted">
-          ZYVORA operates with transparency. In compliance with e-commerce
+          GrownLeaf operates with transparency. In compliance with e-commerce
           consumer protection standards, business registrations and support
           channels are listed below. Missing details are shown with official
           placeholders:

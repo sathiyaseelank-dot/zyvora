@@ -70,7 +70,7 @@ export function LoginPage() {
       title="Sign in to your account"
       intro="Access your orders, saved addresses and exclusive flag drops."
       footer={
-        <AuthFooterLink prefix="New to ZYVORA?" to="/register">
+        <AuthFooterLink prefix="New to GrownLeaf?" to="/register">
           Create an account
         </AuthFooterLink>
       }

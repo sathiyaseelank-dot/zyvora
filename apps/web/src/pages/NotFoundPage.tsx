@@ -11,7 +11,7 @@ import { ButtonLink } from '../components/Button';
  */
 export function NotFoundPage({ onTitle }: { onTitle: (t: string) => void }) {
   useEffect(() => {
-    onTitle('Page not found — ZYVORA');
+    onTitle('Page not found — GrownLeaf');
   }, [onTitle]);
 
   return (

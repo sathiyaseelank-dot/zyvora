@@ -38,12 +38,12 @@ describe('HomePage (ZYV-100, ZYV-107, ZYV-108, ZYV-112)', () => {
       screen.getByRole('heading', { level: 1, name: /Flags that fly first/i }),
     ).toBeTruthy();
     expect(
-      screen.getByAltText(/ZYVORA Premium Car and Bike Flag Banner/i),
+      screen.getByAltText(/GrownLeaf Premium Car and Bike Flag Banner/i),
     ).toBeTruthy();
 
-    // Why Choose ZYVORA
+    // Why Choose GrownLeaf
     expect(
-      screen.getByRole('heading', { level: 2, name: /Why choose ZYVORA/i }),
+      screen.getByRole('heading', { level: 2, name: /Why choose GrownLeaf/i }),
     ).toBeTruthy();
     expect(screen.getByText(/Aerodynamic Strength/i)).toBeTruthy();
     expect(screen.getByText(/UV-Stabilised Cloth/i)).toBeTruthy();
@@ -62,7 +62,7 @@ describe('HomePage (ZYV-100, ZYV-107, ZYV-108, ZYV-112)', () => {
     fireEvent.click(faqToggle);
     expect(
       screen.getByText(
-        /Every ZYVORA flag is constructed from 110 GSM UV-stabilised polyester/i,
+        /Every GrownLeaf flag is constructed from 110 GSM UV-stabilised polyester/i,
       ),
     ).toBeTruthy();
   });

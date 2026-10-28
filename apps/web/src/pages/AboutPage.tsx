@@ -88,7 +88,7 @@ export function AboutPage() {
           <dl className="mt-4 grid gap-3 text-[12px] sm:grid-cols-2">
             <div>
               <dt className="font-bold text-ink-muted">Brand Name:</dt>
-              <dd className="text-ink-soft">ZYVORA®</dd>
+              <dd className="text-ink-soft">GrownLeaf®</dd>
             </div>
             <div>
               <dt className="font-bold text-ink-muted">Tagline:</dt>

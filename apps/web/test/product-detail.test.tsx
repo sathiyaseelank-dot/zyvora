@@ -241,6 +241,6 @@ describe('ZYV-106 product detail', () => {
       </MemoryRouter>,
     );
 
-    await waitFor(() => expect(titles).toContain(`${BASE.name} — ZYVORA`));
+    await waitFor(() => expect(titles).toContain(`${BASE.name} — GrownLeaf`));
   });
 });

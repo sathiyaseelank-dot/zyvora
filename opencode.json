@@ -1,0 +1,26 @@
+{
+  "mcp": {
+    "servers": {
+      "vercel": {
+        "type": "remote",
+        "url": "https://mcp.vercel.com"
+      },
+      "render": {
+        "type": "remote",
+        "url": "https://mcp.render.com/mcp",
+        "oauth": false,
+        "headers": {
+          "Authorization": "Bearer {env:RENDER_API_KEY}"
+        }
+      },
+      "atlassian": {
+        "type": "remote",
+        "url": "https://mcp.atlassian.com/v2/mcp"
+      },
+      "supabase": {
+        "type": "remote",
+        "url": "https://mcp.supabase.com/mcp?project_ref=ycqheltqwgkvxblsqqab&features=docs%2Caccount%2Cdatabase%2Cdebugging%2Cdevelopment%2Cfunctions%2Cbranching"
+      }
+    }
+  }
+}

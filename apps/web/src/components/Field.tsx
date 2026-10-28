@@ -13,9 +13,9 @@ import { useId } from 'react';
  */
 
 const CONTROL =
-  'w-full border bg-paper px-3.5 py-3 text-[14px] text-ink ' +
-  'placeholder:text-ink-muted/70 transition-colors duration-150 ' +
-  'focus:border-brass-dark focus:outline-none';
+  'w-full rounded-xl border bg-slate-50/70 px-3.5 py-2.5 text-[14px] text-slate-900 ' +
+  'placeholder:text-slate-400 transition-all duration-150 ' +
+  'focus:border-brass focus:bg-white focus:ring-2 focus:ring-brass/20 focus:outline-none';
 
 interface FieldProps {
   label: string;
@@ -43,10 +43,7 @@ export function Field({ label, error, hint, children, required }: FieldProps) {
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label
-        htmlFor={id}
-        className="text-[11px] font-bold uppercase tracking-[0.1em] text-ink-soft"
-      >
+      <label htmlFor={id} className="text-xs font-semibold text-slate-700">
         {label}
         {required ? (
           <span className="ml-1 text-brass-deep" aria-hidden="true">

@@ -65,54 +65,86 @@ export function AboutPage() {
           </ol>
         </nav>
 
-        <p className="eyebrow">Our Story &amp; Craft</p>
         <h1 className="max-w-[18ch] font-display text-[clamp(2.5rem,6vw,4.25rem)] leading-[0.98]">
           Made for the road, <em className="text-brass-deep italic">not</em> the
           shelf
         </h1>
         <p className="mt-7 max-w-[52ch] text-[15px] leading-[1.75] text-ink-soft">
-          ZYVORA was founded on a simple principle: car and bike flags should be
-          engineered to withstand highway speeds, weather, and sun. We don't
+          GrownLeaf was founded on a simple principle: car and bike flags should
+          be engineered to withstand highway speeds, weather, and sun. We don't
           make cheap novelties. Everything here is built to fly with pride.
         </p>
 
         {/* Business Transparency Notice (ZYV-117) */}
-        <div className="mt-10 max-w-[800px] border border-brass/30 bg-paper-sunk p-6">
-          <h2 className="text-[11px] font-bold tracking-[0.14em] text-brass-deep uppercase">
-            Company &amp; Registration Transparency (ZYV-117)
-          </h2>
-          <p className="mt-2 text-[12px] leading-relaxed text-ink-muted">
+        <div className="mt-10 max-w-[860px] rounded-2xl border border-slate-200/80 bg-slate-50/70 p-6 sm:p-7 shadow-xs">
+          <div className="flex items-center gap-3">
+            <span
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100/80 text-amber-800 text-base shadow-xs"
+              aria-hidden="true"
+            >
+              🛡️
+            </span>
+            <div>
+              <h2 className="text-[15px] font-bold text-slate-900 leading-snug">
+                Company &amp; Registration Transparency
+              </h2>
+              <p className="text-[11px] font-medium text-slate-500">
+                Official business compliance disclosures
+              </p>
+            </div>
+          </div>
+
+          <p className="mt-3.5 text-[13px] leading-relaxed text-slate-600">
             In accordance with e-commerce compliance guidelines, we provide
             truthful operational disclosures. No corporate details are invented:
           </p>
-          <dl className="mt-4 grid gap-3 text-[12px] sm:grid-cols-2">
-            <div>
-              <dt className="font-bold text-ink-muted">Brand Name:</dt>
-              <dd className="text-ink-soft">GrownLeaf®</dd>
+
+          <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-xs">
+              <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Brand Name
+              </dt>
+              <dd className="mt-1 text-sm font-bold text-slate-900">
+                GrownLeaf®
+              </dd>
             </div>
-            <div>
-              <dt className="font-bold text-ink-muted">Tagline:</dt>
-              <dd className="text-ink-soft">
+            <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-xs">
+              <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Official Tagline
+              </dt>
+              <dd className="mt-1 text-xs font-semibold text-amber-800">
                 Quality | Style | For Your World
               </dd>
             </div>
-            <div>
-              <dt className="font-bold text-ink-muted">Origin &amp; Base:</dt>
-              <dd className="text-ink-soft">Chennai, Tamil Nadu, India</dd>
+            <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-xs">
+              <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Origin &amp; Base
+              </dt>
+              <dd className="mt-1 text-xs font-semibold text-slate-800">
+                Chennai, Tamil Nadu, India
+              </dd>
             </div>
-            <div>
-              <dt className="font-bold text-ink-muted">Customer Support:</dt>
-              <dd className="text-ink-soft">support@zyvora.com</dd>
+            <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-xs">
+              <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Customer Support
+              </dt>
+              <dd className="mt-1 text-xs font-semibold text-slate-800">
+                support@zyvora.com
+              </dd>
             </div>
-            <div>
-              <dt className="font-bold text-ink-muted">Legal GSTIN:</dt>
-              <dd className="text-ink-soft">
+            <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-xs">
+              <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                State Tax ID
+              </dt>
+              <dd className="mt-1.5 inline-block rounded-md border border-amber-200/60 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-900">
                 [GSTIN: Pending State Tax Registration]
               </dd>
             </div>
-            <div>
-              <dt className="font-bold text-ink-muted">Corporate Identity:</dt>
-              <dd className="text-ink-soft">
+            <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-xs">
+              <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Corporate Filing
+              </dt>
+              <dd className="mt-1.5 inline-block rounded-md border border-amber-200/60 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-900">
                 [CIN: Pending Ministry of Corporate Affairs Filing]
               </dd>
             </div>
@@ -151,7 +183,6 @@ export function AboutPage() {
       </section>
 
       <section className="mx-auto max-w-[900px] px-5 py-20 sm:px-8">
-        <p className="eyebrow">Specification</p>
         <h2 className="font-display text-[clamp(2rem,4vw,3rem)]">
           What you are <em className="text-brass-deep italic">buying</em>
         </h2>

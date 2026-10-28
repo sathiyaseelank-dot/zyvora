@@ -22,43 +22,44 @@
 
 @theme {
   /* ---- Paper and ink -------------------------------------------------- */
-  --color-paper: #f7f4ee; /* warm bone — the page */
-  --color-paper-sunk: #eae4d9; /* recessed bands: story, footer alt */
-  --color-ink: #171717; /* near-black — primary text */
-  --color-ink-soft: #4b4843; /* secondary text       — 8.9:1 on paper */
-  --color-ink-muted: #777168; /* muted text          — 4.9:1 on paper */
-  --color-rule: #ded9d0; /* hairlines and borders */
+  --color-paper: #ffffff; /* crisp, clean modern white surface */
+  --color-paper-sunk: #f8fafc; /* subtle slate-50 contrast for cards and banners */
+  --color-ink: #0f172a; /* deep slate-900 — high-contrast primary text */
+  --color-ink-soft: #334155; /* slate-700 — clear secondary text */
+  --color-ink-muted: #64748b; /* slate-500 — friendly muted metadata */
+  --color-rule: #e2e8f0; /* delicate modern hairlines and borders */
 
-  /* ---- Brass accent --------------------------------------------------- */
-  --color-brass: #c49136; /* primary action fill */
-  --color-brass-deep: #9a7131; /* brass text on paper — 4.6:1, 12px+ only */
-  --color-brass-dark: #b8862e; /* hover fill on dark ground */
-  --color-brass-light: #e2b65f; /* brass hover on paper */
-  --color-brass-glow: #d9a648; /* brass on dark ground  — 7.1:1 */
+  /* ---- Brass / Amber accent ------------------------------------------- */
+  --color-brass: #d97706; /* primary warm amber action fill */
+  --color-brass-deep: #b45309; /* rich amber text and accents */
+  --color-brass-dark: #92400e; /* hover state on dark grounds */
+  --color-brass-light: #f59e0b; /* bright amber hover */
+  --color-brass-glow: #fbbf24; /* warm glowing gold */
 
   /* ---- Ink grounds (hero, footer, ticker partner) --------------------- */
-  --color-ground: #1c1c1b;
-  --color-ground-deep: #101010;
-  --color-on-ground: #f7f4ee;
-  --color-on-ground-muted: #bdbbb4; /* 8.4:1 on ground */
+  --color-ground: #0f172a;
+  --color-ground-deep: #020617;
+  --color-on-ground: #f8fafc;
+  --color-on-ground-muted: #94a3b8;
 
   /* ---- Flag colours (badges, cart count, category marks) -------------- */
-  --color-flag-red: #b72420;
-  --color-flag-yellow: #f2c04c;
-  --color-flag-cream: #eee6d0;
+  --color-flag-red: #ef4444;
+  --color-flag-yellow: #f59e0b;
+  --color-flag-cream: #fef3c7;
+  --color-forest: #16a34a;
 
   /* ---- Semantic ------------------------------------------------------- */
-  --color-danger: #a51f1b; /* 6.0:1 on paper */
-  --color-danger-soft: #fbeeed;
-  --color-success: #1f6b3f;
-  --color-success-soft: #eaf4ee;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fef2f2;
+  --color-success: #16a34a;
+  --color-success-soft: #f0fdf4;
 
   /* ---- Type ----------------------------------------------------------- */
   --font-display:
     'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-sans:
-    'Poppins', 'Helvetica Neue', Helvetica, Arial, 'Segoe UI', Roboto, system-ui,
-    sans-serif;
+    'Poppins', 'Helvetica Neue', Helvetica, Arial, 'Segoe UI', Roboto,
+    system-ui, sans-serif;
 
   /* ---- Type scale (rem) ---------------------------------------------- */
   --text-eyebrow: 0.625rem; /* 10px  */

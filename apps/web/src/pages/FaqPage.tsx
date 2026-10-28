@@ -125,7 +125,6 @@ export function FaqPage() {
 
       {/* Header */}
       <div className="mb-10 text-center space-y-3">
-        <p className="eyebrow">Customer Support &amp; Knowledge Base</p>
         <h1 className="font-display text-3xl sm:text-4xl text-ink">
           Frequently Asked Questions
         </h1>

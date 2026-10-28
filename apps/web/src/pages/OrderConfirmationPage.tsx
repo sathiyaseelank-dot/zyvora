@@ -80,7 +80,6 @@ export function OrderConfirmationPage() {
             />
           </svg>
         </div>
-        <p className="eyebrow">Thank You for Your Order</p>
         <h1 className="font-display text-3xl sm:text-4xl text-ink">
           Order Confirmed
         </h1>

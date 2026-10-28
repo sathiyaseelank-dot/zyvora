@@ -7,7 +7,9 @@ This document outlines improvements for order lifecycle management and audit log
 ## 1. Audit Log Payload Inspector (Diff Modal for `oldValues` vs `newValues`)
 
 ### Current Behavior:
+
 The backend `/api/admin/audit-log` returns rich payload metadata:
+
 ```json
 {
   "action": "order.status_changed",
@@ -20,13 +22,16 @@ The backend `/api/admin/audit-log` returns rich payload metadata:
   "newValues": { "status": "delivered", "note": null }
 }
 ```
+
 However, the UI table currently only displays:
 `ACTION | ENTITY TYPE | ENTITY ID | DATE`
 
 ### Problem:
+
 Admins cannot see **what actually changed**. If a product pricing was updated from ₹999 to ₹1499, or stock was adjusted, the audit entry only shows `admin.product.pricing_update`, leaving the admin blind to the exact modified values.
 
 ### Proposed Improvement:
+
 1. Make audit log rows clickable or add a `View Details` button.
 2. Clicking opens an Audit Details Modal or drawer displaying:
    - Changed Fields Diff:
@@ -40,12 +45,16 @@ Admins cannot see **what actually changed**. If a product pricing was updated fr
 ## 2. Order Management Search & Status Filtering
 
 ### Current Behavior:
+
 The Orders tab displays a plain list of recent orders up to 50 items.
+
 - There is no search box to look up an order by **Order ID**, **Customer Email**, or **Customer Name**.
 - There is no filter dropdown to filter orders by state (`pending`, `confirmed`, `processing`, `shipped`, `delivered`, `cancelled`).
 
 ### Proposed Improvement:
+
 Add a top toolbar to the Orders tab matching the Products tab:
+
 ```tsx
 <div className="flex flex-wrap items-center gap-3">
   <input
@@ -73,8 +82,11 @@ Add a top toolbar to the Orders tab matching the Products tab:
 ## 3. Order Status Transition Confirmation
 
 ### Current Behavior:
+
 Clicking `Confirm Order`, `Process`, `Mark Shipped`, or `Mark Delivered` instantly executes the transition without confirmation.
+
 - While archiving a product asks for confirmation, advancing an order (which may trigger shipping notifications or inventory lock) does not.
 
 ### Proposed Improvement:
+
 Add a lightweight confirmation dialog or confirmation popover before advancing orders to irreversible states like `Shipped` or `Delivered`.

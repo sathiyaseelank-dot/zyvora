@@ -1,38 +1,37 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
-type Variant = 'brass' | 'ink' | 'ghost' | 'outline';
+type Variant = 'brass' | 'ink' | 'ghost' | 'outline' | 'glass';
 type Size = 'sm' | 'md' | 'lg';
 
 const BASE =
-  'inline-flex items-center justify-center gap-3 border font-bold uppercase ' +
-  'tracking-[0.13em] transition-[background-color,color,transform,border-color] ' +
-  'duration-200 ease-[var(--ease-out-soft)] disabled:cursor-not-allowed ' +
-  'disabled:opacity-55 disabled:hover:transform-none';
+  'inline-flex items-center justify-center gap-2.5 border font-semibold ' +
+  'rounded-xl transition-all duration-200 ease-[var(--ease-out-soft)] ' +
+  'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:transform-none shadow-xs ' +
+  'active:scale-[0.98]';
 
 const SIZES: Record<Size, string> = {
-  sm: 'px-4 py-2.5 text-[10px]',
-  md: 'px-5 py-3.5 text-[10px]',
-  lg: 'px-6 py-4 text-[11px]',
+  sm: 'px-3.5 py-1.5 text-xs rounded-lg',
+  md: 'px-5 py-2.5 text-sm rounded-xl',
+  lg: 'px-6 py-3.5 text-sm sm:text-base rounded-xl font-semibold',
 };
 
 const VARIANTS: Record<Variant, string> = {
-  // Brass fill with ink text — the reference's signature action, and the
-  // highest-contrast pairing in the palette (8.9:1).
   brass:
-    'bg-brass text-ground-deep border-transparent hover:bg-brass-light ' +
+    'bg-brass text-white border-transparent hover:bg-brass-light hover:shadow-md ' +
     'hover:-translate-y-0.5 active:translate-y-0',
   ink:
-    'bg-ink text-paper border-transparent hover:bg-ink-soft ' +
+    'bg-ink text-white border-transparent hover:bg-ink-soft hover:shadow-md ' +
     'hover:-translate-y-0.5 active:translate-y-0',
   outline:
-    'bg-transparent text-ink border-ink/25 hover:border-brass-deep ' +
-    'hover:text-brass-deep',
-  // Transparent until hovered. Used on ink grounds, where a bordered button
-  // would read as a box floating on the hero.
+    'bg-white text-ink border-slate-200 hover:border-brass-deep hover:text-brass-deep ' +
+    'hover:bg-slate-50',
   ghost:
     'bg-transparent text-ink border-transparent hover:text-brass-deep ' +
-    'hover:border-brass-deep/40',
+    'hover:bg-slate-100/60',
+  glass:
+    'bg-white/10 text-white border-white/20 hover:border-white/40 hover:bg-white/20 ' +
+    'backdrop-blur-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0',
 };
 
 interface CommonProps {

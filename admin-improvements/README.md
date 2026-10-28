@@ -19,17 +19,17 @@ All core administrative workflows are working correctly. Based on the live testi
 
 ## Tested Flows at a Glance
 
-| Module / Flow | Options & Actions Tested | Live Status | Evidence File |
-|---|---|---|---|
-| **1. Authentication & Role** | RequireAdmin route guard, admin identity header, sign out, storefront link | ✅ Pass | [`01-FLOWS-AND-VERIFICATION-RESULTS.md`](./01-FLOWS-AND-VERIFICATION-RESULTS.md) |
-| **2. Overview & Reports** | Sales metrics (Total Revenue, Orders, AOV), CSV exports | ✅ Pass | [`01-FLOWS-AND-VERIFICATION-RESULTS.md`](./01-FLOWS-AND-VERIFICATION-RESULTS.md) |
-| **3. Product Management** | Real-time search, category filter, status filter, empty state, row table | ✅ Pass | [`01-FLOWS-AND-VERIFICATION-RESULTS.md`](./01-FLOWS-AND-VERIFICATION-RESULTS.md) |
-| **4. Product Creation** | + ADD NEW PRODUCT modal, HTML5 validation, POST submission, toast feedback | ✅ Pass | [`01-FLOWS-AND-VERIFICATION-RESULTS.md`](./01-FLOWS-AND-VERIFICATION-RESULTS.md) |
-| **5. Product Edit & Gallery** | Edit modal pre-fill, basic PATCH, pricing PATCH, gallery attach, reorder (↑/↓), delete | ✅ Pass | [`01-FLOWS-AND-VERIFICATION-RESULTS.md`](./01-FLOWS-AND-VERIFICATION-RESULTS.md) |
-| **6. Product Lifecycle** | Active/Archived row toggle, Archive confirmation modal (Cancel / Confirm) | ✅ Pass | [`01-FLOWS-AND-VERIFICATION-RESULTS.md`](./01-FLOWS-AND-VERIFICATION-RESULTS.md) |
-| **7. Order Transitions** | Order list, sequential status change (Confirmed → Processing → Shipped → Delivered) | ✅ Pass | [`01-FLOWS-AND-VERIFICATION-RESULTS.md`](./01-FLOWS-AND-VERIFICATION-RESULTS.md) |
-| **8. Refund Requests** | Refund table headers, status badges, action controls | ✅ Pass | [`01-FLOWS-AND-VERIFICATION-RESULTS.md`](./01-FLOWS-AND-VERIFICATION-RESULTS.md) |
-| **9. Audit Logging** | Action logs for products, orders, auth; formatted timestamps; entity references | ✅ Pass | [`01-FLOWS-AND-VERIFICATION-RESULTS.md`](./01-FLOWS-AND-VERIFICATION-RESULTS.md) |
+| Module / Flow                 | Options & Actions Tested                                                               | Live Status | Evidence File                                                                    |
+| ----------------------------- | -------------------------------------------------------------------------------------- | ----------- | -------------------------------------------------------------------------------- |
+| **1. Authentication & Role**  | RequireAdmin route guard, admin identity header, sign out, storefront link             | ✅ Pass     | [`01-FLOWS-AND-VERIFICATION-RESULTS.md`](./01-FLOWS-AND-VERIFICATION-RESULTS.md) |
+| **2. Overview & Reports**     | Sales metrics (Total Revenue, Orders, AOV), CSV exports                                | ✅ Pass     | [`01-FLOWS-AND-VERIFICATION-RESULTS.md`](./01-FLOWS-AND-VERIFICATION-RESULTS.md) |
+| **3. Product Management**     | Real-time search, category filter, status filter, empty state, row table               | ✅ Pass     | [`01-FLOWS-AND-VERIFICATION-RESULTS.md`](./01-FLOWS-AND-VERIFICATION-RESULTS.md) |
+| **4. Product Creation**       | + ADD NEW PRODUCT modal, HTML5 validation, POST submission, toast feedback             | ✅ Pass     | [`01-FLOWS-AND-VERIFICATION-RESULTS.md`](./01-FLOWS-AND-VERIFICATION-RESULTS.md) |
+| **5. Product Edit & Gallery** | Edit modal pre-fill, basic PATCH, pricing PATCH, gallery attach, reorder (↑/↓), delete | ✅ Pass     | [`01-FLOWS-AND-VERIFICATION-RESULTS.md`](./01-FLOWS-AND-VERIFICATION-RESULTS.md) |
+| **6. Product Lifecycle**      | Active/Archived row toggle, Archive confirmation modal (Cancel / Confirm)              | ✅ Pass     | [`01-FLOWS-AND-VERIFICATION-RESULTS.md`](./01-FLOWS-AND-VERIFICATION-RESULTS.md) |
+| **7. Order Transitions**      | Order list, sequential status change (Confirmed → Processing → Shipped → Delivered)    | ✅ Pass     | [`01-FLOWS-AND-VERIFICATION-RESULTS.md`](./01-FLOWS-AND-VERIFICATION-RESULTS.md) |
+| **8. Refund Requests**        | Refund table headers, status badges, action controls                                   | ✅ Pass     | [`01-FLOWS-AND-VERIFICATION-RESULTS.md`](./01-FLOWS-AND-VERIFICATION-RESULTS.md) |
+| **9. Audit Logging**          | Action logs for products, orders, auth; formatted timestamps; entity references        | ✅ Pass     | [`01-FLOWS-AND-VERIFICATION-RESULTS.md`](./01-FLOWS-AND-VERIFICATION-RESULTS.md) |
 
 ---
 
@@ -50,14 +50,14 @@ All core administrative workflows are working correctly. Based on the live testi
 
 ## Priority Implementation Matrix
 
-| Priority | Category | Improvement Proposal | Impact | Effort |
-|---|---|---|---|---|
-| **P0 (Immediate)** | UX | Add empty state components to Orders & Refund Requests tabs | High | Low |
-| **P0 (Immediate)** | Forms | Prevent `compareAtPrice` from being lower than `price` | High | Low |
-| **P1 (High)** | Performance | Debounce product search input (300ms) to avoid keystroke API flooding | High | Low |
-| **P1 (High)** | Operations | Add Audit Log Diff Modal to view payload changes (`oldValues` / `newValues`) | High | Medium |
-| **P1 (High)** | Usability | Add Clear/Reset button for product filters | Medium | Low |
-| **P2 (Medium)** | Usability | Implement pagination and column sorting on products & audit tables | High | Medium |
-| **P2 (Medium)** | UI | Add live image preview thumbnail in product creation/edit modals | Medium | Low |
-| **P2 (Medium)** | Safety | Add confirmation dialog/popover for order status transitions | Medium | Low |
-| **P3 (Polish)** | a11y | Focus trap in modals + auto-dismiss success toasts after 5s | Medium | Low |
+| Priority           | Category    | Improvement Proposal                                                         | Impact | Effort |
+| ------------------ | ----------- | ---------------------------------------------------------------------------- | ------ | ------ |
+| **P0 (Immediate)** | UX          | Add empty state components to Orders & Refund Requests tabs                  | High   | Low    |
+| **P0 (Immediate)** | Forms       | Prevent `compareAtPrice` from being lower than `price`                       | High   | Low    |
+| **P1 (High)**      | Performance | Debounce product search input (300ms) to avoid keystroke API flooding        | High   | Low    |
+| **P1 (High)**      | Operations  | Add Audit Log Diff Modal to view payload changes (`oldValues` / `newValues`) | High   | Medium |
+| **P1 (High)**      | Usability   | Add Clear/Reset button for product filters                                   | Medium | Low    |
+| **P2 (Medium)**    | Usability   | Implement pagination and column sorting on products & audit tables           | High   | Medium |
+| **P2 (Medium)**    | UI          | Add live image preview thumbnail in product creation/edit modals             | Medium | Low    |
+| **P2 (Medium)**    | Safety      | Add confirmation dialog/popover for order status transitions                 | Medium | Low    |
+| **P3 (Polish)**    | a11y        | Focus trap in modals + auto-dismiss success toasts after 5s                  | Medium | Low    |

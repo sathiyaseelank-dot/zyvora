@@ -314,7 +314,6 @@ export function CheckoutPage() {
   return (
     <div className="mx-auto max-w-[1000px] px-5 py-12 sm:py-16">
       <div className="mb-10 text-center">
-        <p className="eyebrow">Checkout</p>
         <h1 className="font-display text-[32px] sm:text-[40px] text-ink">
           Complete Your Order
         </h1>

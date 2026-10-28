@@ -259,7 +259,6 @@ export function AccountPage() {
     <div className="mx-auto max-w-[1000px] px-5 py-12 sm:py-16">
       <div className="mb-8 flex flex-wrap justify-between items-end gap-4 border-b border-rule pb-6">
         <div>
-          <p className="eyebrow">Customer Account</p>
           <h1 className="font-display text-3xl sm:text-4xl text-ink">
             Hello, {user?.fullName?.split(' ')[0] ?? 'there'}
           </h1>

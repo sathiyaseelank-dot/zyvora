@@ -26,22 +26,30 @@ export function AuthLayout({
   footer,
 }: AuthLayoutProps) {
   return (
-    <div className="mx-auto w-full max-w-[460px] px-5 py-14 sm:py-20">
-      <p className="eyebrow">{eyebrow}</p>
+    <div className="mx-auto w-full max-w-[500px] px-4 py-12 sm:py-16">
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-7 shadow-xs sm:p-10">
+        {eyebrow ? (
+          <span className="mb-3.5 inline-block rounded-lg border border-amber-200/60 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-900">
+            {eyebrow}
+          </span>
+        ) : null}
 
-      <h1 className="font-display text-[38px] leading-[1.02] sm:text-[46px]">
-        {title}
-      </h1>
+        <h1 className="font-display text-[32px] font-bold tracking-tight text-slate-900 leading-[1.05] sm:text-[38px]">
+          {title}
+        </h1>
 
-      <p className="mt-4 text-[14px] leading-relaxed text-ink-soft">{intro}</p>
+        <p className="mt-3 text-[14px] leading-relaxed text-slate-600">
+          {intro}
+        </p>
 
-      <div className="mt-9">{children}</div>
+        <div className="mt-8">{children}</div>
 
-      {footer ? (
-        <div className="mt-8 border-t border-rule pt-6 text-[13px] text-ink-soft">
-          {footer}
-        </div>
-      ) : null}
+        {footer ? (
+          <div className="mt-8 border-t border-slate-200 pt-6 text-[13px] text-slate-600">
+            {footer}
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

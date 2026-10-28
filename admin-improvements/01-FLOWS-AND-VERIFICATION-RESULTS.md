@@ -3,13 +3,14 @@
 **Execution Mode:** Live Orca Embedded Browser Controller (`orca goto`, `orca snapshot`, `orca click`, `orca eval`)  
 **Base URL:** `https://zyvora-omega.vercel.app/admin`  
 **Authenticated Session:** `admin` (`ss@gmail.com`)  
-**Date:** 2026-10-19  
+**Date:** 2026-10-19
 
 ---
 
 ## 1. Authentication & Navigation Header
 
 ### Test Actions:
+
 1. Checked authenticated state: session cookie `zyvora_session` verified with admin claims.
 2. Verified console header title: "ADMINISTRATION", "Control Console".
 3. Verified user badge: "ADMIN — SS@GMAIL.COM".
@@ -17,6 +18,7 @@
 5. Inspected SIGN OUT control: triggers session invalidation.
 
 ### Observed Results:
+
 - Header loads properly with high contrast typography and clean hierarchy.
 - Admin role and email accurately reflect currently signed-in principal.
 
@@ -25,6 +27,7 @@
 ## 2. Overview & Reports Tab
 
 ### Test Actions:
+
 1. Clicked `Overview & Reports` navigation tab.
 2. Verified metrics card renders:
    - **TOTAL REVENUE:** `₹1,696`
@@ -34,6 +37,7 @@
 4. Tested Export Low Stock link: `GET /api/admin/reports/low-stock?format=csv`.
 
 ### Observed Results:
+
 - Cards display crisp currency formatting.
 - CSV endpoints responded with HTTP 200 and `Content-Type: text/csv; charset=utf-8`.
 
@@ -42,6 +46,7 @@
 ## 3. Products Management Tab
 
 ### Flow 3A: Product Listing & Filters
+
 1. **Category Filter Dropdown:**
    - Dropdown options: "All Categories", "Accessories", "Bike Flags", "Car Flags", "Gift Sets".
    - Selected "Car Flags" → Filtered table down from 11 items to 3 items immediately.
@@ -53,6 +58,7 @@
    - Cleared search → Restored full catalog list.
 
 ### Flow 3B: Product Creation Modal (+ ADD NEW PRODUCT)
+
 1. Clicked `+ ADD NEW PRODUCT` button.
 2. Tested empty form submission:
    - Browser HTML5 validation prevented empty submission; flagged `Name`, `Description`, `Price`, and `Image` as required.
@@ -68,11 +74,13 @@
 4. Submitted form via `CREATE PRODUCT` button.
 
 ### Observed Results:
+
 - Toast notification appeared: `"Product \"Live Test Car Flag — Orca UI Review\" created successfully!"`.
 - Modal closed and reset.
 - Product appeared at the top of the table with status badge `ACTIVE`, formatted prices (`₹799`, compare-at `₹999`), and stock count `35`.
 
 ### Flow 3C: Product Editing Modal & Pricing PATCH
+
 1. Clicked `Edit` on the newly created product.
 2. Modal opened with heading: `Edit Product: Live Test Car Flag — Orca UI Review`.
 3. Modified fields:
@@ -83,11 +91,13 @@
 4. Clicked `SAVE CHANGES`.
 
 ### Observed Results:
+
 - Both `PATCH /api/admin/products/:id` and `PATCH /api/admin/products/:id/pricing` executed successfully.
 - Toast feedback: `"Product \"Live Test Car Flag — Orca UI Review\" updated successfully."`.
 - Modal closed; product table row immediately refreshed reflecting `₹849`, `₹1,199`, and stock `42`.
 
 ### Flow 3D: Gallery Images Sub-system (Attach, Reorder, Delete)
+
 1. Opened Edit modal for product.
 2. Tested `+ ATTACH IMAGE` button disabled state when URL input is empty → ✅ Verified disabled.
 3. Filled image 1 URL (`https://images.unsplash.com/photo-1511919884226-fd3cad34687c`) + Alt text (`Side view of flag`) → Clicked `+ ATTACH IMAGE`.
@@ -105,6 +115,7 @@
    - Images removed cleanly from database.
 
 ### Flow 3E: Status Toggle & Archive Confirmation Modal
+
 1. Clicked `ACTIVE` badge on product row:
    - Status toggled to `ARCHIVED`.
    - Toast: `"Product \"...\" is now Archived (hidden from store)."`.
@@ -126,6 +137,7 @@
 ## 4. Orders Management Tab
 
 ### Test Actions:
+
 1. Clicked `Orders` navigation tab.
 2. Verified table layout: `ORDER ID`, `CUSTOMER`, `TOTAL`, `STATUS`, `TRANSITION ACTION`.
 3. Order `c68a983c…` observed in status `Processing`.
@@ -144,6 +156,7 @@
 ## 5. Refund Requests Tab
 
 ### Test Actions:
+
 1. Clicked `Refund Requests` navigation tab.
 2. Verified table headers: `REFUND ID`, `AMOUNT`, `REASON`, `STATUS`, `ACTIONS`.
 3. Inspected empty state behavior:
@@ -155,6 +168,7 @@
 ## 6. Audit Log Tab
 
 ### Test Actions:
+
 1. Clicked `Audit Log` navigation tab.
 2. Verified table columns: `Action`, `Entity Type`, `Entity ID`, `Date`.
 3. Verified real-time persistence of recent administrative operations:

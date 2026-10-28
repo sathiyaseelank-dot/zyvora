@@ -100,7 +100,6 @@ export function CartPage() {
   if (failed) {
     return (
       <div className="mx-auto max-w-[560px] px-5 py-24 text-center">
-        <p className="eyebrow eyebrow--centred">Your cart</p>
         <h1 className="font-display text-[clamp(2rem,5vw,3rem)]">
           We could not load your cart
         </h1>
@@ -121,7 +120,6 @@ export function CartPage() {
   if (lines.length === 0) {
     return (
       <div className="mx-auto max-w-[560px] px-5 py-24 text-center">
-        <p className="eyebrow eyebrow--centred">Your cart</p>
         <h1 className="font-display text-[clamp(2rem,5vw,3rem)]">
           Nothing in the basket
         </h1>
@@ -137,7 +135,6 @@ export function CartPage() {
 
   return (
     <div className="mx-auto max-w-[1100px] px-5 py-14 sm:px-8">
-      <p className="eyebrow">Your cart</p>
       <h1 className="font-display text-[clamp(2.25rem,5vw,3.5rem)]">
         {totals?.itemCount} {totals?.itemCount === 1 ? 'flag' : 'flags'}
       </h1>
@@ -157,56 +154,56 @@ export function CartPage() {
       </div>
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_320px] lg:gap-14">
-        <ul className="divide-y divide-rule border-y border-rule">
+        <ul className="divide-y divide-slate-200/80">
           {lines.map((line) => {
             const busy = busyItem === line.itemId;
             const short = line.available <= 5 && line.available > 0;
             return (
               <li
                 key={line.itemId}
-                className={`flex gap-5 py-6 ${busy ? 'opacity-60' : ''}`}
+                className={`flex gap-5 py-6 rounded-2xl bg-white border border-slate-200/70 p-4 mb-4 shadow-xs ${busy ? 'opacity-60' : ''}`}
               >
                 <Link
                   to={`/catalog/${line.productId}`}
-                  className="w-[88px] shrink-0 overflow-hidden bg-paper-sunk"
+                  className="w-[96px] shrink-0 overflow-hidden rounded-xl bg-slate-100"
                 >
                   <ProductImage
                     src={line.image}
                     alt={line.name}
-                    className="aspect-[3/4] w-full object-cover saturate-[0.82]"
+                    className="aspect-[3/4] w-full object-cover"
                   />
                 </Link>
 
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
                   <div className="flex items-start justify-between gap-4">
-                    <h2 className="font-display text-[18px]">
+                    <h2 className="font-display text-[17px] font-semibold text-slate-900 hover:text-amber-700 transition-colors">
                       <Link to={`/catalog/${line.productId}`}>{line.name}</Link>
                     </h2>
-                    <p className="shrink-0 text-[14px] font-semibold whitespace-nowrap">
+                    <p className="shrink-0 text-[16px] font-bold text-slate-900 whitespace-nowrap">
                       {rupees(line.lineTotal)}
                     </p>
                   </div>
 
-                  <p className="text-[12px] text-ink-muted">
+                  <p className="text-[12px] text-slate-500">
                     {rupees(line.unitPrice)} each
                   </p>
 
                   {short ? (
-                    <p className="text-[12px] text-danger">
+                    <p className="text-[12px] font-medium text-danger">
                       Only {line.available} left in stock
                     </p>
                   ) : null}
                   {line.available === 0 ? (
-                    <p className="text-[12px] text-danger">
+                    <p className="text-[12px] font-medium text-danger">
                       Out of stock — remove to continue
                     </p>
                   ) : null}
 
-                  <div className="mt-1 flex items-center gap-4">
+                  <div className="mt-2 flex items-center gap-4">
                     {/* Quantity stepper: real buttons, so it is keyboard
                         operable and the value is announced rather than a div
                         that only responds to clicks. */}
-                    <div className="inline-flex items-center border border-rule">
+                    <div className="inline-flex items-center rounded-xl border border-slate-200 bg-slate-50 p-0.5">
                       <button
                         type="button"
                         disabled={busy || line.quantity <= 1}
@@ -217,7 +214,7 @@ export function CartPage() {
                             line.itemId,
                           )
                         }
-                        className="px-3 py-1.5 text-[13px] transition-colors hover:text-brass-deep disabled:opacity-40 disabled:hover:text-ink"
+                        className="flex h-7 w-7 items-center justify-center rounded-lg text-[14px] font-bold text-slate-700 transition-colors hover:bg-white hover:text-brass-deep disabled:opacity-30 disabled:hover:text-ink"
                       >
                         <span aria-hidden="true">−</span>
                         <span className="sr-only">
@@ -226,7 +223,7 @@ export function CartPage() {
                       </button>
                       <span
                         aria-live="polite"
-                        className="min-w-[2ch] px-2 text-center text-[13px]"
+                        className="min-w-[2.5ch] px-2 text-center text-xs font-semibold text-slate-900"
                       >
                         <span aria-hidden="true">{line.quantity}</span>
                         <span className="sr-only">
@@ -243,7 +240,7 @@ export function CartPage() {
                             line.itemId,
                           )
                         }
-                        className="px-3 py-1.5 text-[13px] transition-colors hover:text-brass-deep disabled:opacity-40 disabled:hover:text-ink"
+                        className="flex h-7 w-7 items-center justify-center rounded-lg text-[14px] font-bold text-slate-700 transition-colors hover:bg-white hover:text-brass-deep disabled:opacity-30 disabled:hover:text-ink"
                       >
                         <span aria-hidden="true">+</span>
                         <span className="sr-only">
@@ -261,15 +258,8 @@ export function CartPage() {
                           line.itemId,
                         )
                       }
-                      className="text-[11px] tracking-[0.1em] text-ink-muted uppercase transition-colors hover:text-danger"
+                      className="text-xs font-semibold text-slate-500 transition-colors hover:text-red-600 disabled:opacity-40"
                     >
-                      {/*
-                      Named for assistive technology, shown as the bare
-                      word. Two buttons both reading "Remove" are
-                      ambiguous once a basket holds more than one line: a
-                      screen-reader user hears "Remove, button" twice with
-                      no way to tell which flag it takes out.
-                      */}
                       <span aria-hidden="true">Remove</span>
                       <span className="sr-only">Remove {line.name}</span>
                     </button>
@@ -282,8 +272,10 @@ export function CartPage() {
 
         {/* Totals come from the server as computed. Nothing is summed here. */}
         <aside className="lg:sticky lg:top-24 lg:self-start">
-          <div className="border border-rule bg-paper p-6">
-            <h2 className="font-display text-[22px]">Summary</h2>
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
+            <h2 className="font-display text-[20px] font-bold text-slate-900">
+              Summary
+            </h2>
 
             <dl className="mt-5 grid gap-2.5 text-[13px]">
               <div className="flex justify-between">

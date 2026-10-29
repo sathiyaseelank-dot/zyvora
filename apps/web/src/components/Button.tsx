@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
-type Variant = 'brass' | 'ink' | 'ghost' | 'outline';
+type Variant = 'brass' | 'ink' | 'ghost' | 'outline' | 'glass';
 type Size = 'sm' | 'md' | 'lg';
 
 const BASE =
@@ -29,6 +29,9 @@ const VARIANTS: Record<Variant, string> = {
   ghost:
     'bg-transparent text-ink border-transparent hover:text-brass-deep ' +
     'hover:bg-slate-100/60',
+  glass:
+    'bg-white/10 text-white border-white/20 hover:border-white/40 hover:bg-white/20 ' +
+    'backdrop-blur-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0',
 };
 
 interface CommonProps {

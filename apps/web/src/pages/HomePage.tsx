@@ -208,9 +208,8 @@ export function HomePage() {
             </ButtonLink>
             <ButtonLink
               to="/about"
-              variant="outline"
+              variant="glass"
               size="lg"
-              className="border-slate-700 bg-slate-900/60 text-on-ground hover:border-amber-400 hover:text-amber-300"
             >
               Our craft
             </ButtonLink>

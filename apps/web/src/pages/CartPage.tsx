@@ -100,7 +100,6 @@ export function CartPage() {
   if (failed) {
     return (
       <div className="mx-auto max-w-[560px] px-5 py-24 text-center">
-        <p className="eyebrow eyebrow--centred">Your cart</p>
         <h1 className="font-display text-[clamp(2rem,5vw,3rem)]">
           We could not load your cart
         </h1>
@@ -121,7 +120,6 @@ export function CartPage() {
   if (lines.length === 0) {
     return (
       <div className="mx-auto max-w-[560px] px-5 py-24 text-center">
-        <p className="eyebrow eyebrow--centred">Your cart</p>
         <h1 className="font-display text-[clamp(2rem,5vw,3rem)]">
           Nothing in the basket
         </h1>
@@ -137,7 +135,6 @@ export function CartPage() {
 
   return (
     <div className="mx-auto max-w-[1100px] px-5 py-14 sm:px-8">
-      <p className="eyebrow">Your cart</p>
       <h1 className="font-display text-[clamp(2.25rem,5vw,3.5rem)]">
         {totals?.itemCount} {totals?.itemCount === 1 ? 'flag' : 'flags'}
       </h1>

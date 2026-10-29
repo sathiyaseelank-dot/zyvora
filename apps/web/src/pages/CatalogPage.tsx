@@ -182,7 +182,6 @@ export function CatalogPage() {
 
   return (
     <div className="mx-auto max-w-[1400px] px-5 py-14 sm:px-8">
-      <p className="eyebrow">The collection</p>
       <h1 className="font-display text-[clamp(2.25rem,5vw,3.75rem)]">
         {q ? (
           <>

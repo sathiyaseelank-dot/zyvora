@@ -183,7 +183,6 @@ export function AboutPage() {
       </section>
 
       <section className="mx-auto max-w-[900px] px-5 py-20 sm:px-8">
-        <p className="eyebrow">Specification</p>
         <h2 className="font-display text-[clamp(2rem,4vw,3rem)]">
           What you are <em className="text-brass-deep italic">buying</em>
         </h2>

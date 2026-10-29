@@ -28,7 +28,11 @@ export function AuthLayout({
   return (
     <div className="mx-auto w-full max-w-[500px] px-4 py-12 sm:py-16">
       <div className="rounded-2xl border border-slate-200/80 bg-white p-7 shadow-xs sm:p-10">
-        <p className="eyebrow">{eyebrow}</p>
+        {eyebrow ? (
+          <span className="mb-3.5 inline-block rounded-lg border border-amber-200/60 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-900">
+            {eyebrow}
+          </span>
+        ) : null}
 
         <h1 className="font-display text-[32px] font-bold tracking-tight text-slate-900 leading-[1.05] sm:text-[38px]">
           {title}

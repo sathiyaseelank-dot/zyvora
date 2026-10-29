@@ -41,7 +41,6 @@ export function CraftPage() {
   return (
     <>
       <section className="mx-auto max-w-[1400px] px-5 py-16 sm:px-8 sm:py-24">
-        <p className="eyebrow">Our craft</p>
         <h1 className="max-w-[18ch] font-display text-[clamp(2.5rem,6vw,4.25rem)] leading-[0.98]">
           Made for the road, <em className="text-brass-deep italic">not</em> the
           shelf
@@ -78,7 +77,6 @@ export function CraftPage() {
       </section>
 
       <section className="mx-auto max-w-[900px] px-5 py-20 sm:px-8">
-        <p className="eyebrow">Specification</p>
         <h2 className="font-display text-[clamp(2rem,4vw,3rem)]">
           What you are <em className="text-brass-deep italic">buying</em>
         </h2>

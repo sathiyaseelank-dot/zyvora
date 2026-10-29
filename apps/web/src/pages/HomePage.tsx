@@ -295,7 +295,6 @@ export function HomePage() {
       <section className="border-y border-slate-200 bg-slate-50/70 py-20">
         <div className="mx-auto max-w-[1400px] px-5 sm:px-8">
           <div className="max-w-[700px]">
-            <p className="eyebrow">The GrownLeaf standard</p>
             <h2 className="font-display text-[clamp(2.25rem,5vw,3.75rem)] font-bold tracking-tight text-slate-900">
               Why choose <em className="text-brass-deep italic">GrownLeaf</em>
             </h2>
@@ -333,7 +332,6 @@ export function HomePage() {
           className="mx-auto max-w-[1400px] px-5 py-20 sm:px-8"
         >
           <div className="max-w-[650px]">
-            <p className="eyebrow">Verified Customers</p>
             <h2
               id="genuine-reviews-heading"
               className="font-display text-[clamp(2.25rem,5vw,3.75rem)]"
@@ -383,7 +381,6 @@ export function HomePage() {
           aria-hidden="true"
         />
         <div className="flex flex-col items-start justify-center px-6 py-16 sm:px-10 lg:px-[clamp(2.5rem,8vw,7rem)]">
-          <p className="eyebrow">Our craft</p>
           <h2 className="font-display text-[clamp(2.25rem,5vw,3.75rem)]">
             Cut for the <em className="text-brass-deep italic">wind</em>
           </h2>
@@ -417,7 +414,6 @@ export function HomePage() {
       {/* FAQ Preview Section (ZYV-112, ZYV-102) */}
       <section className="mx-auto max-w-[1000px] px-5 py-20 sm:px-8">
         <div className="text-center">
-          <p className="eyebrow">Got questions?</p>
           <h2 className="font-display text-[clamp(2.25rem,5vw,3.5rem)]">
             Frequently Asked Questions
           </h2>

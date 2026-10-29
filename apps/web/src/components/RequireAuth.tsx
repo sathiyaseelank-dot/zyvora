@@ -77,7 +77,9 @@ export function RequireAdmin({ children }: { children: ReactNode }) {
   if (user?.role !== 'admin') {
     return (
       <div className="mx-auto max-w-[560px] px-5 py-24 text-center sm:py-32">
-        <p className="eyebrow eyebrow--centred">Error 403</p>
+        <span className="mb-4 inline-block rounded-full bg-red-50 border border-red-200/70 px-3.5 py-1 text-xs font-bold text-red-900 tracking-wider uppercase">
+          Error 403
+        </span>
         <h1 className="font-display text-[clamp(2rem,5vw,3rem)]">
           Access Restricted
         </h1>

@@ -36,7 +36,6 @@ export function ContactPage() {
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 sm:py-16">
       <div className="max-w-[760px]">
-        <p className="eyebrow">Customer Support &amp; Enquiries</p>
         <h1 className="font-display text-[clamp(2.25rem,5vw,3.5rem)] leading-[1.05]">
           Get in touch with <em className="text-brass-deep italic">GrownLeaf</em>
         </h1>

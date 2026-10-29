@@ -16,7 +16,9 @@ export function NotFoundPage({ onTitle }: { onTitle: (t: string) => void }) {
 
   return (
     <div className="mx-auto max-w-[560px] px-5 py-24 text-center sm:py-32">
-      <p className="eyebrow eyebrow--centred">Error 404</p>
+      <span className="mb-4 inline-block rounded-full bg-amber-50 border border-amber-200/70 px-3.5 py-1 text-xs font-bold text-amber-900 tracking-wider uppercase">
+        Error 404
+      </span>
       <h1 className="font-display text-[clamp(2.5rem,6vw,4rem)]">
         This flag is <em className="text-brass-deep italic">not</em> in our
         range

@@ -568,7 +568,6 @@ export function AdminDashboardPage({
     <div className="mx-auto max-w-[1200px] px-5 py-12">
       <header className="mb-8 flex flex-col justify-between gap-4 border-b border-rule pb-6 sm:flex-row sm:items-center">
         <div>
-          <p className="eyebrow">Administration</p>
           <h1 className="font-display text-[32px] sm:text-[40px]">
             Control Console
           </h1>

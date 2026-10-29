@@ -130,36 +130,39 @@ export function PolicyPage({
       </nav>
 
       {/* Header */}
-      <div className="mb-10 border-b border-rule pb-6">
+      <div className="mb-8 border-b border-slate-200 pb-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="eyebrow">Store Policy &amp; Terms</p>
-            <h1 className="font-display text-3xl sm:text-4xl text-ink mt-1">
+            <h1 className="font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
               {title}
             </h1>
+            <p className="mt-2 text-xs text-slate-500">
+              Last revised: February 2027 • Governed by GrownLeaf customer protection
+              standards
+            </p>
           </div>
-          <span className="px-3 py-1 text-[10px] font-mono uppercase tracking-wider rounded bg-paper-sunk text-ink-muted border border-rule">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/80 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-900">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
             Official Policy
           </span>
         </div>
-        <p className="text-xs text-ink-muted mt-3">
-          Last revised: February 2027 • Governed by GrownLeaf customer protection
-          standards
-        </p>
       </div>
 
-      <div className="prose prose-sm max-w-none text-ink-soft space-y-6 leading-relaxed">
+      <div className="space-y-6 leading-relaxed">
         {/* Main Content Body */}
-        <div className="p-6 bg-surface-sunken/20 border border-rule rounded whitespace-pre-line text-sm sm:text-base leading-relaxed">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 sm:p-8 shadow-xs whitespace-pre-line text-sm sm:text-[15px] leading-relaxed text-slate-700">
           {content}
         </div>
 
         {/* Honest placeholder notice per ZYV-117 */}
-        <div className="p-4 rounded bg-amber-50/40 border border-amber-200/60 text-xs text-amber-900/80 space-y-1">
-          <p className="font-semibold uppercase tracking-wider text-[10px]">
-            Business Transparency Notice
-          </p>
-          <p>
+        <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-5 shadow-xs text-xs text-slate-600 space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="text-sm" aria-hidden="true">🛡️</span>
+            <p className="font-bold text-slate-900 text-xs">
+              Business Transparency Notice
+            </p>
+          </div>
+          <p className="leading-relaxed">
             Corporate registration details: [CIN: Pending Official Filing] •
             GSTIN: [GSTIN: Pending State Tax Registration] • Location: Chennai,
             Tamil Nadu, India. For all formal legal notices or inquiries,
@@ -168,37 +171,37 @@ export function PolicyPage({
         </div>
 
         {/* Related Policy Links */}
-        <div className="pt-8 border-t border-rule">
-          <h2 className="font-display text-lg text-ink mb-4">
+        <div className="pt-8 border-t border-slate-200">
+          <h2 className="font-display text-lg font-bold text-slate-900 mb-4">
             Related Policies &amp; Help
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Link
               to="/shipping-policy"
-              className="p-4 border border-rule rounded hover:border-brass transition-all block text-sm"
+              className="p-4 rounded-xl border border-slate-200 bg-white hover:border-brass hover:shadow-sm transition-all block text-sm"
             >
-              <p className="font-semibold text-ink">Shipping Policy</p>
-              <p className="text-xs text-ink-muted mt-1">
+              <p className="font-semibold text-slate-900">Shipping Policy</p>
+              <p className="text-xs text-slate-500 mt-1">
                 Delivery timelines &amp; rates
               </p>
             </Link>
             <Link
               to="/cancellation-policy"
-              className="p-4 border border-rule rounded hover:border-brass transition-all block text-sm"
+              className="p-4 rounded-xl border border-slate-200 bg-white hover:border-brass hover:shadow-sm transition-all block text-sm"
             >
-              <p className="font-semibold text-ink">Cancellation Policy</p>
-              <p className="text-xs text-ink-muted mt-1">
+              <p className="font-semibold text-slate-900">Cancellation Policy</p>
+              <p className="text-xs text-slate-500 mt-1">
                 Cancellation rules &amp; deadlines
               </p>
             </Link>
             <Link
               to="/return-refund-policy"
-              className="p-4 border border-rule rounded hover:border-brass transition-all block text-sm"
+              className="p-4 rounded-xl border border-slate-200 bg-white hover:border-brass hover:shadow-sm transition-all block text-sm"
             >
-              <p className="font-semibold text-ink">
+              <p className="font-semibold text-slate-900">
                 Return &amp; Refund Policy
               </p>
-              <p className="text-xs text-ink-muted mt-1">
+              <p className="text-xs text-slate-500 mt-1">
                 7-day return guarantee
               </p>
             </Link>

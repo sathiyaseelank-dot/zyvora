@@ -273,7 +273,9 @@ export function CartPage() {
         {/* Totals come from the server as computed. Nothing is summed here. */}
         <aside className="lg:sticky lg:top-24 lg:self-start">
           <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
-            <h2 className="font-display text-[20px] font-bold text-slate-900">Summary</h2>
+            <h2 className="font-display text-[20px] font-bold text-slate-900">
+              Summary
+            </h2>
 
             <dl className="mt-5 grid gap-2.5 text-[13px]">
               <div className="flex justify-between">

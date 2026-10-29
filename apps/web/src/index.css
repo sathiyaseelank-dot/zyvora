@@ -58,8 +58,8 @@
   --font-display:
     'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-sans:
-    'Poppins', 'Helvetica Neue', Helvetica, Arial, 'Segoe UI', Roboto, system-ui,
-    sans-serif;
+    'Poppins', 'Helvetica Neue', Helvetica, Arial, 'Segoe UI', Roboto,
+    system-ui, sans-serif;
 
   /* ---- Type scale (rem) ---------------------------------------------- */
   --text-eyebrow: 0.625rem; /* 10px  */

@@ -199,7 +199,10 @@ export function ProductDetailPage({
 
               {product.inStock && (
                 <div className="mt-6 flex items-center gap-4">
-                  <label htmlFor="quantity" className="text-xs font-semibold text-slate-700">
+                  <label
+                    htmlFor="quantity"
+                    className="text-xs font-semibold text-slate-700"
+                  >
                     Quantity
                   </label>
                   <div className="inline-flex items-center rounded-xl border border-slate-200 bg-slate-50 p-1">
@@ -230,7 +233,11 @@ export function ProductDetailPage({
                     />
                     <button
                       type="button"
-                      onClick={() => setQuantity((q) => Math.min(product.quantityAvailable, q + 1))}
+                      onClick={() =>
+                        setQuantity((q) =>
+                          Math.min(product.quantityAvailable, q + 1),
+                        )
+                      }
                       disabled={quantity >= product.quantityAvailable}
                       className="flex h-7 w-7 items-center justify-center rounded-lg text-sm font-bold text-slate-600 hover:bg-white hover:shadow-xs disabled:opacity-30"
                       aria-label="Increase"
@@ -262,7 +269,10 @@ export function ProductDetailPage({
               </div>
 
               {added && (
-                <p role="status" className="mt-4 flex items-center gap-2 text-[13px] font-semibold text-forest">
+                <p
+                  role="status"
+                  className="mt-4 flex items-center gap-2 text-[13px] font-semibold text-forest"
+                >
                   <span>✓</span> Added to your cart.{' '}
                   <Link to="/cart" className="underline hover:text-emerald-800">
                     View cart
@@ -275,18 +285,28 @@ export function ProductDetailPage({
             <div className="mt-10 grid grid-cols-3 gap-3 border-t border-slate-200/80 pt-6 text-center">
               <div className="rounded-xl bg-slate-50 p-3">
                 <span className="text-lg">⚡</span>
-                <p className="mt-1 text-[11px] font-bold text-slate-800">120 km/h Tested</p>
-                <p className="text-[10px] text-slate-500">Highway aerodynamic</p>
+                <p className="mt-1 text-[11px] font-bold text-slate-800">
+                  120 km/h Tested
+                </p>
+                <p className="text-[10px] text-slate-500">
+                  Highway aerodynamic
+                </p>
               </div>
               <div className="rounded-xl bg-slate-50 p-3">
                 <span className="text-lg">🧵</span>
-                <p className="mt-1 text-[11px] font-bold text-slate-800">Triple-Stitched</p>
+                <p className="mt-1 text-[11px] font-bold text-slate-800">
+                  Triple-Stitched
+                </p>
                 <p className="text-[10px] text-slate-500">Fray-resistant hem</p>
               </div>
               <div className="rounded-xl bg-slate-50 p-3">
                 <span className="text-lg">🚚</span>
-                <p className="mt-1 text-[11px] font-bold text-slate-800">Express Delivery</p>
-                <p className="text-[10px] text-slate-500">Fast dispatch in India</p>
+                <p className="mt-1 text-[11px] font-bold text-slate-800">
+                  Express Delivery
+                </p>
+                <p className="text-[10px] text-slate-500">
+                  Fast dispatch in India
+                </p>
               </div>
             </div>
           </div>

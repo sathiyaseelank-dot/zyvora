@@ -70,7 +70,10 @@ export function Header() {
         <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-5 py-3.5 sm:px-8">
           <Link to="/" className="flex flex-col whitespace-nowrap">
             <span className="font-display text-[22px] font-bold italic tracking-tight leading-none text-ink">
-              Grown<span className="text-brass-deep not-italic font-semibold">Leaf</span>
+              Grown
+              <span className="text-brass-deep not-italic font-semibold">
+                Leaf
+              </span>
               <sup className="ml-0.5 align-super text-[8px] font-bold not-italic tracking-normal text-brass-deep">
                 ®
               </sup>
@@ -166,7 +169,9 @@ export function Header() {
                       d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                     />
                   </svg>
-                  <span className="max-w-[120px] truncate">{user.fullName}</span>
+                  <span className="max-w-[120px] truncate">
+                    {user.fullName}
+                  </span>
                 </Link>
                 <button
                   type="button"

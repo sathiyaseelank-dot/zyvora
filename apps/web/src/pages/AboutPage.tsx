@@ -70,8 +70,8 @@ export function AboutPage() {
           shelf
         </h1>
         <p className="mt-7 max-w-[52ch] text-[15px] leading-[1.75] text-ink-soft">
-          GrownLeaf was founded on a simple principle: car and bike flags should be
-          engineered to withstand highway speeds, weather, and sun. We don't
+          GrownLeaf was founded on a simple principle: car and bike flags should
+          be engineered to withstand highway speeds, weather, and sun. We don't
           make cheap novelties. Everything here is built to fly with pride.
         </p>
 

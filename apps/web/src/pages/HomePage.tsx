@@ -52,7 +52,10 @@ function ProductStrip({
     return (
       <div className="grid grid-cols-2 gap-6 sm:grid-cols-3" aria-hidden="true">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="aspect-4/5 rounded-2xl animate-pulse bg-slate-100" />
+          <div
+            key={i}
+            className="aspect-4/5 rounded-2xl animate-pulse bg-slate-100"
+          />
         ))}
       </div>
     );
@@ -84,7 +87,9 @@ function ProductStrip({
               {product.category}
             </p>
             <div className="mt-1 flex items-start justify-between gap-3">
-              <h3 className="font-display text-[16px] font-semibold text-slate-900 group-hover:text-amber-700 transition-colors line-clamp-1">{product.name}</h3>
+              <h3 className="font-display text-[16px] font-semibold text-slate-900 group-hover:text-amber-700 transition-colors line-clamp-1">
+                {product.name}
+              </h3>
               <p className="shrink-0 text-[15px] font-bold text-slate-900 whitespace-nowrap">
                 {formatPrice(product.price)}
               </p>
@@ -96,7 +101,8 @@ function ProductStrip({
                 {product.rating.average} ★
               </span>
               <span className="text-xs text-slate-500">
-                ({product.rating.count} {product.rating.count === 1 ? 'review' : 'reviews'})
+                ({product.rating.count}{' '}
+                {product.rating.count === 1 ? 'review' : 'reviews'})
               </span>
             </div>
           ) : null}
@@ -203,14 +209,15 @@ export function HomePage() {
             Built for the road, crafted by hand in India.
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
-            <ButtonLink to="/catalog" variant="brass" size="lg" className="shadow-md">
+            <ButtonLink
+              to="/catalog"
+              variant="brass"
+              size="lg"
+              className="shadow-md"
+            >
               Shop flags <span aria-hidden="true">→</span>
             </ButtonLink>
-            <ButtonLink
-              to="/about"
-              variant="glass"
-              size="lg"
-            >
+            <ButtonLink to="/about" variant="glass" size="lg">
               Our craft
             </ButtonLink>
           </div>

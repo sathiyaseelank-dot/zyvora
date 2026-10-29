@@ -38,7 +38,9 @@ export function AuthLayout({
           {title}
         </h1>
 
-        <p className="mt-3 text-[14px] leading-relaxed text-slate-600">{intro}</p>
+        <p className="mt-3 text-[14px] leading-relaxed text-slate-600">
+          {intro}
+        </p>
 
         <div className="mt-8">{children}</div>
 

@@ -137,8 +137,8 @@ export function PolicyPage({
               {title}
             </h1>
             <p className="mt-2 text-xs text-slate-500">
-              Last revised: February 2027 • Governed by GrownLeaf customer protection
-              standards
+              Last revised: February 2027 • Governed by GrownLeaf customer
+              protection standards
             </p>
           </div>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/80 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-900">
@@ -157,7 +157,9 @@ export function PolicyPage({
         {/* Honest placeholder notice per ZYV-117 */}
         <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-5 shadow-xs text-xs text-slate-600 space-y-2">
           <div className="flex items-center gap-2">
-            <span className="text-sm" aria-hidden="true">🛡️</span>
+            <span className="text-sm" aria-hidden="true">
+              🛡️
+            </span>
             <p className="font-bold text-slate-900 text-xs">
               Business Transparency Notice
             </p>
@@ -189,7 +191,9 @@ export function PolicyPage({
               to="/cancellation-policy"
               className="p-4 rounded-xl border border-slate-200 bg-white hover:border-brass hover:shadow-sm transition-all block text-sm"
             >
-              <p className="font-semibold text-slate-900">Cancellation Policy</p>
+              <p className="font-semibold text-slate-900">
+                Cancellation Policy
+              </p>
               <p className="text-xs text-slate-500 mt-1">
                 Cancellation rules &amp; deadlines
               </p>

@@ -297,9 +297,7 @@ describe('Admin Product Management UI (ZYV-92)', () => {
     );
   });
 
-  it(
-    'creates a new product successfully with notification feedback',
-    async () => {
+  it('creates a new product successfully with notification feedback', async () => {
     const createdProduct: AdminProduct = {
       id: 'prod-uuid-new',
       name: 'ZYVORA Heavy Car Flag',

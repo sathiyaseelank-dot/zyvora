@@ -43,10 +43,7 @@ export function Field({ label, error, hint, children, required }: FieldProps) {
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label
-        htmlFor={id}
-        className="text-xs font-semibold text-slate-700"
-      >
+      <label htmlFor={id} className="text-xs font-semibold text-slate-700">
         {label}
         {required ? (
           <span className="ml-1 text-brass-deep" aria-hidden="true">

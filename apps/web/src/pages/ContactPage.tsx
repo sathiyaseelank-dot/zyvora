@@ -37,7 +37,8 @@ export function ContactPage() {
     <div className="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 sm:py-16">
       <div className="max-w-[760px]">
         <h1 className="font-display text-[clamp(2.25rem,5vw,3.5rem)] leading-[1.05]">
-          Get in touch with <em className="text-brass-deep italic">GrownLeaf</em>
+          Get in touch with{' '}
+          <em className="text-brass-deep italic">GrownLeaf</em>
         </h1>
         <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
           Have a question about vehicle fitment, bulk orders, or shipping times?

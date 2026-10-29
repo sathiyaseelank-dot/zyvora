@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { fetchProductById, addCartItem } from '../lib/api';
 import { Button } from '../components/Button';
@@ -59,6 +59,7 @@ export function ProductDetailPage({
   onTitle: (t: string) => void;
 }) {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
   const [product, setProduct] = useState<Detail | null>(null);
   const [missing, setMissing] = useState(false);
@@ -94,6 +95,19 @@ export function ProductDetailPage({
     try {
       await addCartItem(product.id, quantity);
       setAdded(true);
+    } catch {
+      // Surfaced by the cart page; see the note in CatalogPage.
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onBuyNow() {
+    if (!product) return;
+    setBusy(true);
+    try {
+      await addCartItem(product.id, quantity);
+      navigate('/checkout');
     } catch {
       // Surfaced by the cart page; see the note in CatalogPage.
     } finally {
@@ -261,11 +275,15 @@ export function ProductDetailPage({
                       ? 'Add to cart'
                       : 'Sold out'}
                 </Button>
-                <Link to="/cart">
-                  <Button variant="outline" size="lg">
-                    Go to cart
-                  </Button>
-                </Link>
+                <Button
+                  onClick={onBuyNow}
+                  disabled={!product.inStock || busy}
+                  size="lg"
+                  variant="brass"
+                  className="min-w-[170px]"
+                >
+                  {product.inStock ? 'Buy now' : 'Sold out'}
+                </Button>
               </div>
 
               {added && (

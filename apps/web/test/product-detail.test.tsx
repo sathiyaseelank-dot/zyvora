@@ -187,8 +187,10 @@ describe('ZYV-106 product detail', () => {
     renderPage();
 
     await screen.findByText('Out of stock');
-    const button = screen.getByRole('button', { name: /sold out/i });
-    expect((button as HTMLButtonElement).disabled).toBe(true);
+    const buttons = screen.getAllByRole('button', { name: /sold out/i });
+    for (const button of buttons) {
+      expect((button as HTMLButtonElement).disabled).toBe(true);
+    }
   });
 
   it('shows the not-found page for an unknown product', async () => {

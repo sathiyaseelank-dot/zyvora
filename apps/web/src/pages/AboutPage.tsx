@@ -65,19 +65,18 @@ export function AboutPage() {
           </ol>
         </nav>
 
-        <p className="eyebrow">Our Story &amp; Craft</p>
         <h1 className="max-w-[18ch] font-display text-[clamp(2.5rem,6vw,4.25rem)] leading-[0.98]">
           Made for the road, <em className="text-brass-deep italic">not</em> the
           shelf
         </h1>
         <p className="mt-7 max-w-[52ch] text-[15px] leading-[1.75] text-ink-soft">
-          ZYVORA was founded on a simple principle: car and bike flags should be
+          GrownLeaf was founded on a simple principle: car and bike flags should be
           engineered to withstand highway speeds, weather, and sun. We don't
           make cheap novelties. Everything here is built to fly with pride.
         </p>
 
         {/* Business Transparency Notice (ZYV-117) */}
-        <div className="mt-10 max-w-[800px] border border-brass/30 bg-paper-sunk p-6">
+        <div className="mt-10 max-w-[800px] rounded-2xl border border-slate-200/80 bg-slate-50/70 p-6 shadow-xs">
           <h2 className="text-[11px] font-bold tracking-[0.14em] text-brass-deep uppercase">
             Company &amp; Registration Transparency (ZYV-117)
           </h2>

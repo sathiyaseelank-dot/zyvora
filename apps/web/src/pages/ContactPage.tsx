@@ -47,46 +47,79 @@ export function ContactPage() {
       </div>
 
       {/* Business Transparency Notice (ZYV-117) */}
-      <div className="mt-8 border border-brass/30 bg-paper-sunk p-5 sm:p-6">
-        <h2 className="text-[11px] font-bold tracking-[0.14em] text-brass-deep uppercase">
-          Business Details &amp; Transparency Notice
-        </h2>
-        <p className="mt-2 text-[12px] leading-relaxed text-ink-muted">
+      <div className="mt-8 rounded-2xl border border-slate-200/80 bg-slate-50/70 p-6 sm:p-7 shadow-xs">
+        <div className="flex items-center gap-3">
+          <span
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100/80 text-amber-800 text-base shadow-xs"
+            aria-hidden="true"
+          >
+            🛡️
+          </span>
+          <div>
+            <h2 className="text-[15px] font-bold text-slate-900 leading-snug">
+              Business Details &amp; Transparency Notice
+            </h2>
+            <p className="text-[11px] font-medium text-slate-500">
+              Consumer protection &amp; operational disclosure
+            </p>
+          </div>
+        </div>
+
+        <p className="mt-3.5 text-[13px] leading-relaxed text-slate-600">
           GrownLeaf operates with transparency. In compliance with e-commerce
           consumer protection standards, business registrations and support
           channels are listed below. Missing details are shown with official
           placeholders:
         </p>
-        <dl className="mt-4 grid gap-3 text-[12px] sm:grid-cols-2">
-          <div>
-            <dt className="font-bold text-ink-muted">Operating Region:</dt>
-            <dd className="text-ink-soft">Chennai, Tamil Nadu, India</dd>
+
+        <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-xs">
+            <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              Operating Region
+            </dt>
+            <dd className="mt-1 text-xs font-semibold text-slate-800">
+              Chennai, Tamil Nadu, India
+            </dd>
           </div>
-          <div>
-            <dt className="font-bold text-ink-muted">Support Hours:</dt>
-            <dd className="text-ink-soft">Mon – Sat, 9:00 AM – 6:00 PM IST</dd>
+          <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-xs">
+            <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              Support Hours
+            </dt>
+            <dd className="mt-1 text-xs font-semibold text-slate-800">
+              Mon – Sat, 9:00 AM – 6:00 PM IST
+            </dd>
           </div>
-          <div>
-            <dt className="font-bold text-ink-muted">GSTIN:</dt>
-            <dd className="text-ink-soft">
+          <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-xs">
+            <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              Support Email
+            </dt>
+            <dd className="mt-1 text-xs font-semibold text-slate-800">
+              support@zyvora.com
+            </dd>
+          </div>
+          <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-xs">
+            <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              State Tax ID
+            </dt>
+            <dd className="mt-1.5 inline-block rounded-md border border-amber-200/60 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-900">
               [GSTIN: Pending State Tax Registration]
             </dd>
           </div>
-          <div>
-            <dt className="font-bold text-ink-muted">CIN / Registration:</dt>
-            <dd className="text-ink-soft">
+          <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-xs">
+            <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              CIN / Registration
+            </dt>
+            <dd className="mt-1.5 inline-block rounded-md border border-amber-200/60 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-900">
               [CIN: Pending Ministry of Corporate Affairs Filing]
             </dd>
           </div>
-          <div>
-            <dt className="font-bold text-ink-muted">Helpline Phone:</dt>
-            <dd className="text-ink-soft">
+          <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-xs">
+            <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              Helpline Phone
+            </dt>
+            <dd className="mt-1.5 inline-block rounded-md border border-amber-200/60 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-900">
               [Support Phone: Pending Official Helpline Setup]
             </dd>
-          </div>
-          <div>
-            <dt className="font-bold text-ink-muted">Support Email:</dt>
-            <dd className="text-ink-soft">support@zyvora.com</dd>
           </div>
         </dl>
       </div>

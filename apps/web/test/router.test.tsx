@@ -293,7 +293,7 @@ describe('App Router Wiring (ZYV-1317)', () => {
       expect(
         screen.getByRole('heading', {
           level: 1,
-          name: /get in touch with zyvora/i,
+          name: /get in touch with (zyvora|grownleaf)/i,
         }),
       ).toBeInTheDocument();
     });

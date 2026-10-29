@@ -202,18 +202,34 @@ export function CatalogPage() {
       <form
         onSubmit={onSearch}
         role="search"
-        className="mt-8 flex max-w-[420px] items-center gap-3 border-b border-ink-muted/50 pb-2"
+        className="mt-6 flex max-w-[480px] items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xs transition-all focus-within:border-brass focus-within:ring-2 focus-within:ring-brass/20"
       >
         <label htmlFor="catalog-search" className="sr-only">
           Search flags
         </label>
+        <div className="pl-3 text-slate-400">
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        </div>
         <input
           id="catalog-search"
           type="search"
           value={term}
           onChange={(e) => setTerm(e.target.value)}
-          placeholder="Search by name or style"
-          className="w-full bg-transparent text-[14px] outline-none"
+          placeholder="Search flags, vehicle mounts..."
+          className="w-full bg-transparent px-2 text-[14px] text-ink outline-none placeholder:text-slate-400"
         />
         <Button type="submit" size="sm">
           Search
@@ -230,7 +246,7 @@ export function CatalogPage() {
               id="catalog-category"
               value={category}
               onChange={(e) => update({ category: e.target.value || null })}
-              className="border border-ink-muted/40 bg-transparent px-3 py-2 text-[12px] uppercase tracking-[0.08em]"
+              className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-xs outline-none hover:border-slate-300 focus:border-brass focus:ring-1 focus:ring-brass"
             >
               <option value="">All categories</option>
               {categories?.map((c) => (
@@ -249,7 +265,7 @@ export function CatalogPage() {
               id="catalog-sort"
               value={sortValue}
               onChange={(e) => update({ sort: e.target.value })}
-              className="border border-ink-muted/40 bg-transparent px-3 py-2 text-[12px] uppercase tracking-[0.08em]"
+              className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-xs outline-none hover:border-slate-300 focus:border-brass focus:ring-1 focus:ring-brass"
             >
               {SORTS.map((s) => (
                 <option key={s.value} value={s.value}>
@@ -263,7 +279,7 @@ export function CatalogPage() {
             <button
               type="button"
               onClick={() => update({ category: null, sort: null })}
-              className="border-b border-brass-deep text-[11px] tracking-[0.1em] uppercase"
+              className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
             >
               Reset
             </button>
@@ -305,25 +321,39 @@ export function CatalogPage() {
                 : `${total} ${total === 1 ? 'flag' : 'flags'}`}
             </p>
 
-            <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {items.map((product) => (
-                <article key={product.id} className="group min-w-0">
+                <article
+                  key={product.id}
+                  className="group flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-amber-300 hover:shadow-lg min-w-0"
+                >
                   <Link to={`/products/${product.id}`} className="block">
-                    <div className="aspect-4/5 overflow-hidden bg-paper-sunk">
+                    <div className="aspect-4/5 overflow-hidden rounded-xl bg-slate-100">
                       <ProductImage
                         src={product.image}
                         alt={product.name}
-                        className="h-full w-full object-cover saturate-[0.82] transition-transform duration-500 ease-[var(--ease-out-soft)] group-hover:scale-105"
+                        className="h-full w-full object-cover transition-transform duration-500 ease-[var(--ease-out-soft)] group-hover:scale-105"
                       />
                     </div>
-                    <p className="mt-4 mb-1.5 text-[9px] font-bold tracking-[0.13em] text-brass-deep uppercase">
-                      {product.category}
-                    </p>
-                    <div className="flex items-start justify-between gap-3">
-                      <h2 className="font-display text-[17px]">
+                    <div className="mt-3 flex items-center justify-between gap-2">
+                      <span className="inline-block text-[10px] font-bold tracking-wider text-amber-700 uppercase bg-amber-50 px-2 py-0.5 rounded-md">
+                        {product.category}
+                      </span>
+                      {product.inStock ? (
+                        <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                          In stock
+                        </span>
+                      ) : (
+                        <span className="text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                          Out of stock
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-2 flex items-start justify-between gap-3">
+                      <h2 className="font-display text-[16px] font-semibold text-slate-900 group-hover:text-amber-700 transition-colors line-clamp-1">
                         {product.name}
                       </h2>
-                      <p className="shrink-0 text-[13px] font-semibold whitespace-nowrap">
+                      <p className="shrink-0 text-[15px] font-bold text-slate-900 whitespace-nowrap">
                         {rupees(product.price)}
                       </p>
                     </div>
@@ -336,21 +366,17 @@ export function CatalogPage() {
                     fabricated claim about a product nobody has bought.
                   */}
                   {product.rating && (
-                    <p className="mt-1.5 text-[11px] text-ink-muted">
-                      {product.rating.average.toFixed(1)} ★{' '}
-                      <span>({product.rating.count})</span>
-                    </p>
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 text-xs font-bold text-emerald-700">
+                        {product.rating.average.toFixed(1)} ★
+                      </span>
+                      <span className="text-xs text-slate-500">
+                        ({product.rating.count})
+                      </span>
+                    </div>
                   )}
 
-                  <p className="mt-1.5 text-[11px] tracking-[0.08em] uppercase">
-                    {product.inStock ? (
-                      <span className="text-forest">In stock</span>
-                    ) : (
-                      <span className="text-ink-muted">Out of stock</span>
-                    )}
-                  </p>
-
-                  <div className="mt-3 flex gap-2">
+                  <div className="mt-4 flex gap-2">
                     <Button
                       size="sm"
                       disabled={!product.inStock || adding === product.id}
@@ -365,7 +391,7 @@ export function CatalogPage() {
                     </Button>
                     <Link
                       to={`/products/${product.id}`}
-                      className="border border-ink-muted/40 px-3 py-2 text-[11px] tracking-[0.08em] uppercase transition-colors hover:border-brass-deep"
+                      className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-100"
                     >
                       Details
                     </Link>

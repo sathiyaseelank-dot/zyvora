@@ -66,8 +66,8 @@ export function Header() {
         Skip to content
       </a>
 
-      <header className="sticky top-0 z-50 border-b border-rule bg-paper/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-[1400px] items-center gap-6 px-5 py-4 sm:px-8">
+      <header className="sticky top-0 z-50 border-b border-rule bg-white/95 backdrop-blur-md shadow-xs">
+        <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-5 py-3.5 sm:px-8">
           <Link to="/" className="flex flex-col whitespace-nowrap">
             <span className="font-display text-[22px] font-bold italic tracking-tight leading-none text-ink">
               Grown<span className="text-brass-deep not-italic font-semibold">Leaf</span>
@@ -83,18 +83,56 @@ export function Header() {
             </span>
           </Link>
 
-          <nav aria-label="Primary" className="ml-4 hidden md:block">
-            <ul className="flex items-center gap-7">
+          {/* Central prominent search bar (Flipkart/modern e-commerce style) */}
+          <form
+            role="search"
+            action="/catalog"
+            className="hidden max-w-[400px] flex-1 items-center rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-1.5 transition-all focus-within:border-brass focus-within:bg-white focus-within:ring-2 focus-within:ring-brass/20 md:flex"
+          >
+            <label htmlFor="site-search" className="sr-only">
+              Search flags
+            </label>
+            <svg
+              className="h-4 w-4 shrink-0 text-slate-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <input
+              id="site-search"
+              name="q"
+              type="search"
+              placeholder="Search flags, vehicle mounts..."
+              className="w-full bg-transparent px-2 text-[13px] text-ink outline-none placeholder:text-slate-400"
+            />
+            <button
+              type="submit"
+              className="rounded-lg bg-brass px-3 py-1 text-[11px] font-bold text-white transition-opacity hover:opacity-90"
+            >
+              Search
+            </button>
+          </form>
+
+          <nav aria-label="Primary" className="hidden lg:block">
+            <ul className="flex items-center gap-6">
               {NAV.map((item) => (
                 <li key={item.to}>
                   <NavLink
                     to={item.to}
                     end={item.end}
                     className={({ isActive }) =>
-                      `text-[12px] tracking-[0.08em] uppercase transition-colors ${
+                      `text-[13px] font-medium transition-colors ${
                         isActive
-                          ? 'text-brass-deep'
-                          : 'text-ink-soft hover:text-brass-deep'
+                          ? 'font-semibold text-brass-deep'
+                          : 'text-slate-600 hover:text-brass-deep'
                       }`
                     }
                   >
@@ -105,46 +143,35 @@ export function Header() {
             </ul>
           </nav>
 
-          <div className="ml-auto flex items-center gap-4">
-            {/* Search is a real form so Enter submits and the value is a URL. */}
-            <form
-              role="search"
-              action="/catalog"
-              className="hidden items-center gap-2 border-b border-ink-muted/50 pb-1 lg:flex"
-            >
-              <label htmlFor="site-search" className="sr-only">
-                Search flags
-              </label>
-              <input
-                id="site-search"
-                name="q"
-                type="search"
-                placeholder="Search"
-                className="w-[150px] bg-transparent text-[12px] outline-none placeholder:text-ink-muted"
-              />
-              <button
-                type="submit"
-                className="text-[12px] text-ink-muted transition-colors hover:text-brass-deep"
-              >
-                <span aria-hidden="true">⌕</span>
-                <span className="sr-only">Search</span>
-              </button>
-            </form>
-
+          <div className="flex items-center gap-3">
             <CartLink />
 
             {status === 'authenticated' && user ? (
-              <div className="hidden items-center gap-3 sm:flex">
+              <div className="hidden items-center gap-2.5 sm:flex">
                 <Link
                   to="/account"
-                  className="max-w-[140px] truncate text-[12px] tracking-[0.08em] text-ink-soft transition-colors hover:text-brass-deep"
+                  className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:border-brass hover:text-brass-deep"
                 >
-                  {user.fullName}
+                  <svg
+                    className="h-3.5 w-3.5 text-slate-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                  <span className="max-w-[120px] truncate">{user.fullName}</span>
                 </Link>
                 <button
                   type="button"
                   onClick={() => void logout()}
-                  className="text-[12px] tracking-[0.08em] text-ink-muted uppercase transition-colors hover:text-brass-deep"
+                  className="rounded-xl border border-transparent px-2.5 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:text-slate-900"
                 >
                   Sign out
                 </button>
@@ -152,8 +179,22 @@ export function Header() {
             ) : (
               <Link
                 to="/login"
-                className="hidden text-[12px] tracking-[0.08em] text-ink-soft uppercase transition-colors hover:text-brass-deep sm:block"
+                className="hidden items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-800 shadow-xs transition-colors hover:border-brass hover:text-brass-deep sm:flex"
               >
+                <svg
+                  className="h-3.5 w-3.5 text-slate-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
                 Sign in
               </Link>
             )}
@@ -164,7 +205,7 @@ export function Header() {
               onClick={() => setMenuOpen((o) => !o)}
               aria-expanded={menuOpen}
               aria-controls="mobile-menu"
-              className="-mr-1 p-2 text-ink-soft md:hidden"
+              className="-mr-1 rounded-xl p-2 text-slate-600 hover:bg-slate-100 lg:hidden"
             >
               <span
                 aria-hidden="true"
@@ -264,16 +305,30 @@ function CartLink() {
   return (
     <Link
       to="/cart"
-      className="relative text-[16px] text-ink-soft transition-colors hover:text-brass-deep"
+      className="relative flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-xs transition-colors hover:border-brass hover:text-brass-deep"
     >
-      <span aria-hidden="true">🛒</span>
+      <svg
+        className="h-4 w-4 text-slate-700"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+        />
+      </svg>
+      <span className="hidden sm:inline">Cart</span>
       <span className="sr-only">
         Shopping cart{count > 0 ? `, ${count} items` : ', empty'}
       </span>
       {count > 0 ? (
         <span
           aria-hidden="true"
-          className="absolute -top-2 -right-2 grid h-4 min-w-4 place-items-center rounded-full bg-flag-red px-1 text-[9px] font-bold text-white"
+          className="grid h-4 min-w-4 place-items-center rounded-full bg-flag-red px-1 text-[9px] font-bold text-white shadow-xs"
         >
           {count > 99 ? '99+' : count}
         </span>

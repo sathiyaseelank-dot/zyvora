@@ -174,7 +174,7 @@ export function PasswordField({
     <div className="flex flex-col gap-1.5">
       <label
         htmlFor={fieldId}
-        className="text-[11px] font-bold uppercase tracking-[0.1em] text-ink-soft"
+        className="text-xs font-semibold text-slate-700"
       >
         {label}
         {required ? (

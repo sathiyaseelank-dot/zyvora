@@ -52,7 +52,7 @@ function ProductStrip({
     return (
       <div className="grid grid-cols-2 gap-6 sm:grid-cols-3" aria-hidden="true">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="aspect-4/5 animate-pulse bg-paper-sunk" />
+          <div key={i} className="aspect-4/5 rounded-2xl animate-pulse bg-slate-100" />
         ))}
       </div>
     );
@@ -65,34 +65,40 @@ function ProductStrip({
   }
 
   return (
-    <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {products.slice(0, 3).map((product) => (
         <Link
           key={product.id}
           to={`/products/${product.id}`}
-          className="group block min-w-0"
+          className="group flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-amber-300 hover:shadow-lg min-w-0"
         >
-          <div className="aspect-4/5 overflow-hidden bg-paper-sunk">
-            <ProductImage
-              src={product.image}
-              alt={product.name}
-              className="h-full w-full object-cover saturate-[0.82] transition-transform duration-500 ease-[var(--ease-out-soft)] group-hover:scale-105"
-            />
-          </div>
-          <p className="mt-4 mb-1.5 text-[9px] font-bold tracking-[0.13em] text-brass-deep uppercase">
-            {product.category}
-          </p>
-          <div className="flex items-start justify-between gap-3">
-            <h3 className="font-display text-[17px]">{product.name}</h3>
-            <p className="shrink-0 text-[13px] font-semibold whitespace-nowrap">
-              {formatPrice(product.price)}
+          <div>
+            <div className="aspect-4/5 overflow-hidden rounded-xl bg-slate-100">
+              <ProductImage
+                src={product.image}
+                alt={product.name}
+                className="h-full w-full object-cover transition-transform duration-500 ease-[var(--ease-out-soft)] group-hover:scale-105"
+              />
+            </div>
+            <p className="mt-3.5 mb-1.5 inline-block text-[10px] font-bold tracking-wider text-amber-700 uppercase bg-amber-50 px-2 py-0.5 rounded-md">
+              {product.category}
             </p>
+            <div className="mt-1 flex items-start justify-between gap-3">
+              <h3 className="font-display text-[16px] font-semibold text-slate-900 group-hover:text-amber-700 transition-colors line-clamp-1">{product.name}</h3>
+              <p className="shrink-0 text-[15px] font-bold text-slate-900 whitespace-nowrap">
+                {formatPrice(product.price)}
+              </p>
+            </div>
           </div>
           {product.rating ? (
-            <p className="mt-1 text-[11px] font-medium text-brass-deep">
-              {product.rating.average} ★{' '}
-              <span className="text-ink-muted">({product.rating.count})</span>
-            </p>
+            <div className="mt-3 flex items-center gap-1.5 pt-2 border-t border-slate-100">
+              <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200/60">
+                {product.rating.average} ★
+              </span>
+              <span className="text-xs text-slate-500">
+                ({product.rating.count} {product.rating.count === 1 ? 'review' : 'reviews'})
+              </span>
+            </div>
           ) : null}
         </Link>
       ))}
@@ -182,25 +188,29 @@ export function HomePage() {
   return (
     <>
       {/* Hero section with promotional visual and branding (ZYV-107, ZYV-112) */}
-      <section className="on-ground grid min-h-[520px] bg-ground text-on-ground lg:grid-cols-[46fr_54fr]">
-        <div className="relative z-10 flex flex-col items-start justify-center px-6 py-16 sm:px-10 lg:px-[clamp(2rem,8vw,7.5rem)]">
-          <p className="eyebrow">Premium car &amp; bike flags</p>
-          <h1 className="font-display text-[clamp(3.25rem,7vw,5.75rem)] leading-[0.94]">
-            Flags that <em className="text-brass-glow italic">fly</em> first.
+      <section className="on-ground grid min-h-[520px] bg-ground text-on-ground lg:grid-cols-[48fr_52fr]">
+        <div className="relative z-10 flex flex-col items-start justify-center px-6 py-16 sm:px-10 lg:px-[clamp(2.5rem,8vw,7.5rem)]">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3.5 py-1 text-xs font-semibold text-amber-300">
+            <span>✦ Handcrafted in Chennai</span>
+            <span className="text-amber-500">•</span>
+            <span>Tested to 120 km/h</span>
+          </div>
+          <h1 className="font-display text-[clamp(2.75rem,6vw,5.25rem)] font-bold tracking-tight leading-[0.98]">
+            Flags that <em className="text-brass-glow italic">fly first</em>
           </h1>
-          <p className="mt-6 max-w-[38ch] text-[15px] leading-[1.7] text-on-ground-muted">
-            Triple-stitched, UV-stabilised and cut to the wind. Built for the
-            road, not the shelf.
+          <p className="mt-6 max-w-[42ch] text-[15px] leading-[1.7] text-on-ground-muted">
+            Triple-stitched, UV-stabilised and engineered for highway wind load.
+            Built for the road, crafted by hand in India.
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
-            <ButtonLink to="/catalog" variant="brass" size="lg">
+            <ButtonLink to="/catalog" variant="brass" size="lg" className="shadow-md">
               Shop flags <span aria-hidden="true">→</span>
             </ButtonLink>
             <ButtonLink
               to="/about"
-              variant="ghost"
+              variant="outline"
               size="lg"
-              className="text-on-ground hover:text-brass-glow hover:border-brass-glow/40"
+              className="border-slate-700 bg-slate-900/60 text-on-ground hover:border-amber-400 hover:text-amber-300"
             >
               Our craft
             </ButtonLink>
@@ -208,15 +218,15 @@ export function HomePage() {
         </div>
 
         {/* Responsive Hero Banner Asset (ZYV-107) */}
-        <div className="relative flex min-h-[360px] items-center justify-center overflow-hidden bg-gradient-to-br from-[#2a2927] to-[#101010] p-6 lg:min-h-[480px]">
+        <div className="relative flex min-h-[360px] items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-zinc-900 to-black p-6 lg:min-h-[480px]">
           <div
-            className="absolute top-[13%] right-[15%] h-[420px] w-[420px] rounded-full bg-[#bc8e3e]/20 blur-2xl"
+            className="absolute top-[13%] right-[15%] h-[420px] w-[420px] rounded-full bg-amber-500/15 blur-3xl"
             aria-hidden="true"
           />
           <img
             src={heroAsset}
             alt="GrownLeaf Premium Car and Bike Flag Banner"
-            className="relative z-1 max-h-[380px] w-auto max-w-full rounded-sm object-contain shadow-2xl drop-shadow-[0_20px_25px_rgba(0,0,0,0.6)]"
+            className="relative z-1 max-h-[380px] w-auto max-w-full rounded-2xl object-contain shadow-2xl drop-shadow-[0_20px_25px_rgba(0,0,0,0.6)]"
           />
         </div>
       </section>
@@ -249,13 +259,14 @@ export function HomePage() {
       ) : null}
 
       {/* Ticker bar */}
-      <div className="overflow-hidden bg-brass py-3">
+      <div className="overflow-hidden border-y border-amber-600/20 bg-amber-50 py-3">
         <ul className="flex justify-around gap-8 whitespace-nowrap">
           {TICKER.map((item) => (
             <li
               key={item}
-              className="text-[9px] font-bold tracking-[0.18em] text-ground-deep uppercase"
+              className="flex items-center gap-2 text-[11px] font-bold tracking-[0.14em] text-amber-950 uppercase"
             >
+              <span className="text-amber-600">✦</span>
               {item}
             </li>
           ))}
@@ -266,15 +277,15 @@ export function HomePage() {
       <section className="mx-auto max-w-[1400px] px-5 py-20 sm:px-8">
         <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
           <div>
-            <h2 className="font-display text-[clamp(2.25rem,5vw,3.75rem)]">
+            <h2 className="font-display text-[clamp(2.25rem,5vw,3.75rem)] font-bold tracking-tight text-slate-900">
               Flags worth <em className="text-brass-deep italic">flying</em>
             </h2>
           </div>
           <Link
             to="/catalog"
-            className="flex items-center gap-3 border-b border-brass-deep pb-2 text-[10px] font-bold tracking-[0.14em] uppercase transition-colors hover:text-brass-deep"
+            className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-xs transition-all hover:border-brass hover:text-brass-deep hover:shadow-sm"
           >
-            View all <span aria-hidden="true">→</span>
+            View all collection <span aria-hidden="true">→</span>
           </Link>
         </div>
 
@@ -282,32 +293,32 @@ export function HomePage() {
       </section>
 
       {/* Why Choose GrownLeaf Section (ZYV-112) */}
-      <section className="border-y border-rule bg-paper-sunk py-20">
+      <section className="border-y border-slate-200 bg-slate-50/70 py-20">
         <div className="mx-auto max-w-[1400px] px-5 sm:px-8">
           <div className="max-w-[700px]">
             <p className="eyebrow">The GrownLeaf standard</p>
-            <h2 className="font-display text-[clamp(2.25rem,5vw,3.75rem)]">
+            <h2 className="font-display text-[clamp(2.25rem,5vw,3.75rem)] font-bold tracking-tight text-slate-900">
               Why choose <em className="text-brass-deep italic">GrownLeaf</em>
             </h2>
-            <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
+            <p className="mt-4 text-[15px] leading-relaxed text-slate-600">
               Most novelty flags disintegrate after a single highway journey. We
               re-engineered vehicle flags from thread to clip.
             </p>
           </div>
 
-          <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {WHY_CHOOSE_ITEMS.map((item) => (
               <div
                 key={item.title}
-                className="border border-rule bg-paper p-6 transition-all hover:border-brass/40"
+                className="group rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-amber-300 hover:shadow-md"
               >
-                <span className="text-[28px]" aria-hidden="true">
-                  {item.icon}
-                </span>
-                <h3 className="mt-4 font-display text-[18px] font-semibold">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50 text-2xl shadow-xs transition-transform group-hover:scale-110">
+                  <span aria-hidden="true">{item.icon}</span>
+                </div>
+                <h3 className="mt-4 font-display text-[17px] font-bold text-slate-900">
                   {item.title}
                 </h3>
-                <p className="mt-2 text-[13px] leading-relaxed text-ink-muted">
+                <p className="mt-2 text-[13px] leading-relaxed text-slate-600">
                   {item.description}
                 </p>
               </div>
@@ -417,27 +428,30 @@ export function HomePage() {
           </p>
         </div>
 
-        <div className="mt-12 divide-y divide-rule border-y border-rule">
+        <div className="mt-12 space-y-3">
           {PREVIEW_FAQS.map((faq, idx) => {
             const isOpen = openFaq === idx;
             return (
-              <div key={faq.q} className="py-5">
+              <div
+                key={faq.q}
+                className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs transition-all hover:border-amber-300"
+              >
                 <button
                   type="button"
                   onClick={() => setOpenFaq(isOpen ? null : idx)}
                   aria-expanded={isOpen}
-                  className="flex w-full items-center justify-between gap-4 text-left font-display text-[17px] font-semibold text-ink transition-colors hover:text-brass-deep"
+                  className="flex w-full items-center justify-between gap-4 text-left font-display text-[16px] font-semibold text-slate-900 transition-colors hover:text-brass-deep"
                 >
                   <span>{faq.q}</span>
                   <span
-                    className="text-[18px] text-brass-deep"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[15px] font-bold text-brass-deep transition-colors"
                     aria-hidden="true"
                   >
                     {isOpen ? '−' : '+'}
                   </span>
                 </button>
                 {isOpen ? (
-                  <p className="mt-3 text-[14px] leading-relaxed text-ink-soft">
+                  <p className="mt-3.5 border-t border-slate-100 pt-3 text-[14px] leading-relaxed text-slate-600">
                     {faq.a}
                   </p>
                 ) : null}

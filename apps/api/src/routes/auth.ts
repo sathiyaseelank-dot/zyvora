@@ -142,7 +142,7 @@ const registerSchema = z
     password: z.string(),
     confirmPassword: z.string(),
     acceptTerms: z.literal(true, {
-      errorMap: () => ({ message: 'You must accept the Terms and Conditions' }),
+      error: () => ({ message: 'You must accept the Terms and Conditions' }),
     }),
   })
   .refine((v) => v.password === v.confirmPassword, {

@@ -320,6 +320,7 @@ cache) worked fine. Root cause was a **missing `Cache-Control` header on
 `GET /api/auth/csrf`**.
 
 **How the double-submit works:**
+
 1. Frontend calls `/api/auth/csrf` → server returns token in JSON body AND
    sets it as the `zyvora_csrf` cookie.
 2. Frontend sends the mutation (login POST) with the token in the
@@ -329,12 +330,14 @@ cache) worked fine. Root cause was a **missing `Cache-Control` header on
 **Why missing cache headers broke it:** without `Cache-Control: no-store`,
 the browser cached the JSON response. On a cached response the `Set-Cookie`
 header is NOT re-processed, so:
+
 - body (cached) → stale token
 - cookie → different value from a previous fetch
 - mismatch → 403 → frontend retries once → retry also fails →
   `CsrfError` ("Your session security token expired").
 
 **Rules for any endpoint that issues a token/nonce/CSRF value:**
+
 - ALWAYS set `Cache-Control: no-store, no-cache, must-revalidate, private`
   and `Pragma: no-cache` on the response.
 - NEVER rely on the browser's default caching for security tokens.

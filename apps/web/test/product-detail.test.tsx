@@ -48,6 +48,8 @@ function renderPage(id = BASE.id) {
           path="/products/:id"
           element={<ProductDetailPage onTitle={() => {}} />}
         />
+        <Route path="/checkout" element={<div>Checkout</div>} />
+        <Route path="/cart" element={<div>Cart</div>} />
       </Routes>
     </MemoryRouter>,
   );
@@ -81,7 +83,7 @@ describe('ZYV-106 product detail', () => {
     renderPage();
 
     expect(await screen.findByText(BASE.name)).toBeTruthy();
-    expect(screen.getByText(/₹2,499/)).toBeTruthy();
+    expect(screen.getAllByText(/₹2,499/).length).toBeGreaterThan(0);
     expect(screen.getByText(BASE.description)).toBeTruthy();
     expect(screen.getByAltText(BASE.name)).toBeTruthy();
   });
@@ -148,7 +150,9 @@ describe('ZYV-106 product detail', () => {
     const input = screen.getByLabelText(/quantity/i) as HTMLInputElement;
     setQuantity(input, '3');
 
-    await userEvent.click(screen.getByRole('button', { name: /add to cart/i }));
+    await userEvent.click(
+      screen.getAllByRole('button', { name: /add to cart/i })[0],
+    );
 
     await waitFor(() =>
       expect(vi.mocked(api.addCartItem)).toHaveBeenCalledWith(BASE.id, 3),
@@ -165,7 +169,9 @@ describe('ZYV-106 product detail', () => {
     const input = screen.getByLabelText(/quantity/i) as HTMLInputElement;
     setQuantity(input, '99');
 
-    await userEvent.click(screen.getByRole('button', { name: /add to cart/i }));
+    await userEvent.click(
+      screen.getAllByRole('button', { name: /add to cart/i })[0],
+    );
 
     await waitFor(() =>
       expect(vi.mocked(api.addCartItem)).toHaveBeenCalledWith(BASE.id, 7),
@@ -177,7 +183,9 @@ describe('ZYV-106 product detail', () => {
     renderPage();
 
     await screen.findByText(BASE.name);
-    await userEvent.click(screen.getByRole('button', { name: /add to cart/i }));
+    await userEvent.click(
+      screen.getAllByRole('button', { name: /add to cart/i })[0],
+    );
 
     expect(await screen.findByText(/Added to your cart/)).toBeTruthy();
   });
@@ -244,5 +252,49 @@ describe('ZYV-106 product detail', () => {
     );
 
     await waitFor(() => expect(titles).toContain(`${BASE.name} — GrownLeaf`));
+  });
+
+  it('renders Flipkart-style sticky mobile action bar with Add to cart and Buy at', async () => {
+    mockDetail();
+    renderPage();
+
+    await screen.findByText(BASE.name);
+    const stickyBar = screen.getByTestId('mobile-sticky-bar');
+    expect(stickyBar).toBeTruthy();
+    expect(screen.getByText('Buy at ₹2,499')).toBeTruthy();
+
+    // Adjusting quantity updates the "Buy at" total price
+    const input = screen.getByLabelText(/quantity/i) as HTMLInputElement;
+    setQuantity(input, '2');
+    expect(screen.getByText('Buy at ₹4,998')).toBeTruthy();
+  });
+
+  it('adds item to cart using mobile sticky Add to cart button', async () => {
+    mockDetail();
+    renderPage();
+
+    await screen.findByText(BASE.name);
+    const stickyBar = screen.getByTestId('mobile-sticky-bar');
+    const mobileAddButton = stickyBar.querySelector('button')!;
+    await userEvent.click(mobileAddButton);
+
+    await waitFor(() =>
+      expect(vi.mocked(api.addCartItem)).toHaveBeenCalledWith(BASE.id, 1),
+    );
+  });
+
+  it('adds item and navigates using mobile sticky Buy at button', async () => {
+    mockDetail();
+    renderPage();
+
+    await screen.findByText(BASE.name);
+    const mobileBuyButton = screen.getByRole('button', {
+      name: /buy at ₹2,499/i,
+    });
+    await userEvent.click(mobileBuyButton);
+
+    await waitFor(() =>
+      expect(vi.mocked(api.addCartItem)).toHaveBeenCalledWith(BASE.id, 1),
+    );
   });
 });

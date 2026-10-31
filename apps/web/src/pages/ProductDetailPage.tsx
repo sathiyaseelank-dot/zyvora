@@ -127,7 +127,7 @@ export function ProductDetailPage({
   }
 
   return (
-    <div className="mx-auto max-w-[1400px] px-5 py-14 sm:px-8">
+    <div className="mx-auto max-w-[1400px] px-5 pt-8 pb-24 sm:px-8 sm:py-14">
       <nav aria-label="Breadcrumb" className="mb-8 text-[11px] uppercase">
         <Link to="/catalog" className="text-ink-muted hover:text-ink">
           Catalogue
@@ -262,7 +262,8 @@ export function ProductDetailPage({
                 </div>
               )}
 
-              <div className="mt-8 flex flex-wrap gap-3">
+              {/* Desktop Action Buttons */}
+              <div className="mt-8 hidden md:flex flex-wrap gap-3">
                 <Button
                   onClick={onAdd}
                   disabled={!product.inStock || busy}
@@ -327,6 +328,85 @@ export function ProductDetailPage({
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Flipkart-style Sticky Bottom Action Bar for Mobile View */}
+      {product && (
+        <div
+          data-testid="mobile-sticky-bar"
+          className="fixed bottom-0 inset-x-0 z-40 border-t border-slate-200 bg-white/95 px-3 py-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.08)] backdrop-blur-md md:hidden"
+        >
+          <div className="mx-auto flex max-w-md items-center gap-2.5">
+            <button
+              type="button"
+              onClick={onAdd}
+              disabled={!product.inStock || busy}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#ffc200] px-3 py-3 text-xs sm:text-sm font-bold tracking-wide uppercase text-slate-900 shadow-xs transition-all duration-200 hover:bg-[#eab308] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {added ? (
+                <>
+                  <svg
+                    className="h-4 w-4 shrink-0 text-emerald-900"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth="2.5"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <span>Added to cart</span>
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="h-4 w-4 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth="2"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
+                  </svg>
+                  <span>{product.inStock ? 'Add to cart' : 'Sold out'}</span>
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={onBuyNow}
+              disabled={!product.inStock || busy}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#fb641b] px-3 py-3 text-xs sm:text-sm font-bold tracking-wide uppercase text-white shadow-xs transition-all duration-200 hover:bg-[#ea580c] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <svg
+                className="h-4 w-4 shrink-0"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                aria-hidden="true"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span>
+                {product.inStock
+                  ? `Buy at ${rupees(product.price * quantity)}`
+                  : 'Sold out'}
+              </span>
+            </button>
           </div>
         </div>
       )}

@@ -312,6 +312,42 @@ Databases: `zyvora` (app-shaped, has all 6 migrations + seed) and `postgres`.
 - No Vercel CLI installed. `create_deployment` requires a `files` array.
 - The two empty `chore(deploy)` commits were attempts to force a rebuild.
 
+### CSRF / double-submit tokens — READ THIS BEFORE TOUCHING AUTH
+
+**Incident (2026-10-28):** login returned "Your session security token
+expired. Please try again." for every browser request, while `curl` (no
+cache) worked fine. Root cause was a **missing `Cache-Control` header on
+`GET /api/auth/csrf`**.
+
+**How the double-submit works:**
+
+1. Frontend calls `/api/auth/csrf` → server returns token in JSON body AND
+   sets it as the `zyvora_csrf` cookie.
+2. Frontend sends the mutation (login POST) with the token in the
+   `x-csrf-token` header.
+3. Server checks: `header token === cookie token`. Mismatch → 403.
+
+**Why missing cache headers broke it:** without `Cache-Control: no-store`,
+the browser cached the JSON response. On a cached response the `Set-Cookie`
+header is NOT re-processed, so:
+
+- body (cached) → stale token
+- cookie → different value from a previous fetch
+- mismatch → 403 → frontend retries once → retry also fails →
+  `CsrfError` ("Your session security token expired").
+
+**Rules for any endpoint that issues a token/nonce/CSRF value:**
+
+- ALWAYS set `Cache-Control: no-store, no-cache, must-revalidate, private`
+  and `Pragma: no-cache` on the response.
+- NEVER rely on the browser's default caching for security tokens.
+- When debugging "works in curl, fails in browser", suspect caching first.
+- The fix lives in `apps/api/src/routes/auth.ts` (`authRouter.get('/csrf', ...)`).
+
+**Symptom triage:** if a user reports this error, the fix is to clear
+cookies for the site + hard refresh (Ctrl+Shift+R). The backend is fine;
+it's local browser state.
+
 ### Render
 
 - The Render MCP returns **`unauthorized`** on `list_workspaces`. No log or env
@@ -498,8 +534,17 @@ absence, so invented copy breaks a test rather than shipping silently.
 
 ### P1 — CSRF end-to-end check
 
-Unverified against production. Expected: cookie + header passes the guard,
-header-only returns 403. A 500 from the DB meant CSRF had already passed.
+**Resolved (2026-10-28).** Incident: login returned "Your session security
+token expired" in browser but worked via curl. Root cause: missing
+`Cache-Control: no-store` on `/api/auth/csrf` caused browser to cache the
+token response, desynchronising body (stale token) from cookie (fresh token).
+
+Fix: added `Cache-Control: no-store, no-cache, must-revalidate, private` +
+`Pragma: no-cache` to the CSRF endpoint. Verified working in fresh browser
+profile. See "CSRF / double-submit tokens" gotcha above for full details.
+
+Expected behaviour (unchanged): cookie + header passes the guard, header-only
+returns 403. A 500 from the DB means CSRF already passed.
 
 ### P2 — known defects
 

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useSession } from '../lib/session';
 import {
@@ -47,7 +47,9 @@ interface CheckoutState {
 
 export function CheckoutPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useSession();
+  const fullNameRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [cart, setCart] = useState<Cart | null>(null);
@@ -86,6 +88,14 @@ export function CheckoutPage() {
     const newId = crypto.randomUUID();
     return newId;
   });
+
+  // Auto-focus full name field when arriving from "Buy now"
+  useEffect(() => {
+    const state = location.state as { autoFocusFullName?: boolean } | null;
+    if (state?.autoFocusFullName) {
+      setTimeout(() => fullNameRef.current?.focus(), 100);
+    }
+  }, [location.state]);
 
   // Load initial cart and addresses
   useEffect(() => {
@@ -205,6 +215,16 @@ export function CheckoutPage() {
 
       // If user is logged in and entered a new address, save it
       if (user && !selectedAddressId) {
+        // Validate all mandatory fields
+        if (!fullName.trim()) throw new Error('Full name is required');
+        if (!mobile.trim()) throw new Error('Mobile number is required');
+        if (!email.trim()) throw new Error('Email address is required');
+        if (!houseNumberAndStreet.trim())
+          throw new Error('Flat / House No. & Street is required');
+        if (!area.trim()) throw new Error('Area / Locality is required');
+        if (!city.trim()) throw new Error('City is required');
+        if (!state.trim()) throw new Error('State is required');
+        if (!pinCode.trim()) throw new Error('PIN Code is required');
         if (!/^[6-9]\d{9}$/.test(mobile.trim())) {
           throw new Error('Please enter a valid 10-digit Indian mobile number');
         }
@@ -460,6 +480,7 @@ export function CheckoutPage() {
                       <input
                         type="text"
                         required
+                        ref={fullNameRef}
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
                         className="w-full border border-rule rounded px-3 py-2 text-sm focus:border-brass outline-none"
@@ -598,17 +619,21 @@ export function CheckoutPage() {
                 </form>
               )}
 
-              <Button
-                type="submit"
-                form={!selectedAddressId ? 'addressForm' : undefined}
-                onClick={selectedAddressId ? handleProceedToReview : undefined}
-                variant="brass"
-                size="lg"
-                className="w-full"
-                disabled={submitting}
-              >
-                {submitting ? 'Validating...' : 'Continue to Order Review'}
-              </Button>
+              <div className="sticky bottom-0 -mx-4 bg-paper px-4 py-3 sm:static sm:mx-0 sm:bg-transparent sm:px-0 sm:py-0">
+                <Button
+                  type="submit"
+                  form={!selectedAddressId ? 'addressForm' : undefined}
+                  onClick={
+                    selectedAddressId ? handleProceedToReview : undefined
+                  }
+                  variant="brass"
+                  size="lg"
+                  className="w-full"
+                  disabled={submitting}
+                >
+                  {submitting ? 'Validating...' : 'Continue to Order Review'}
+                </Button>
+              </div>
             </div>
           )}
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { fetchProductById, addCartItem } from '../lib/api';
 import { Button } from '../components/Button';
@@ -59,6 +59,7 @@ export function ProductDetailPage({
   onTitle: (t: string) => void;
 }) {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
   const [product, setProduct] = useState<Detail | null>(null);
   const [missing, setMissing] = useState(false);
@@ -101,6 +102,19 @@ export function ProductDetailPage({
     }
   }
 
+  async function onBuyNow() {
+    if (!product) return;
+    setBusy(true);
+    try {
+      await addCartItem(product.id, quantity);
+      navigate('/checkout', { state: { autoFocusFullName: true } });
+    } catch {
+      // Surfaced by the cart page; see the note in CatalogPage.
+    } finally {
+      setBusy(false);
+    }
+  }
+
   // Title goes through the same callback every other page uses, so
   // document.title is set in exactly one place.
   useEffect(() => {
@@ -113,7 +127,7 @@ export function ProductDetailPage({
   }
 
   return (
-    <div className="mx-auto max-w-[1400px] px-5 py-14 sm:px-8">
+    <div className="mx-auto max-w-[1400px] px-5 pt-8 pb-24 sm:px-8 sm:py-14">
       <nav aria-label="Breadcrumb" className="mb-8 text-[11px] uppercase">
         <Link to="/catalog" className="text-ink-muted hover:text-ink">
           Catalogue
@@ -248,7 +262,8 @@ export function ProductDetailPage({
                 </div>
               )}
 
-              <div className="mt-8 flex flex-wrap gap-3">
+              {/* Desktop Action Buttons */}
+              <div className="mt-8 hidden md:flex flex-wrap gap-3">
                 <Button
                   onClick={onAdd}
                   disabled={!product.inStock || busy}
@@ -261,11 +276,15 @@ export function ProductDetailPage({
                       ? 'Add to cart'
                       : 'Sold out'}
                 </Button>
-                <Link to="/cart">
-                  <Button variant="outline" size="lg">
-                    Go to cart
-                  </Button>
-                </Link>
+                <Button
+                  onClick={onBuyNow}
+                  disabled={!product.inStock || busy}
+                  size="lg"
+                  variant="brass"
+                  className="min-w-[170px]"
+                >
+                  {product.inStock ? 'Buy now' : 'Sold out'}
+                </Button>
               </div>
 
               {added && (
@@ -309,6 +328,39 @@ export function ProductDetailPage({
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Flipkart-style Sticky Bottom Action Bar for Mobile View */}
+      {product && (
+        <div
+          data-testid="mobile-sticky-bar"
+          className="fixed bottom-0 inset-x-0 z-40 rounded-t-[16px] border-t border-slate-200/80 bg-white px-3.5 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.08)] md:hidden"
+        >
+          <div className="mx-auto grid max-w-md grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={onAdd}
+              disabled={!product.inStock || busy}
+              className="flex h-[44px] items-center justify-center rounded-[12px] border border-[#d6d6d6] bg-white px-2 text-[14px] font-bold leading-[18px] text-[#333333] shadow-xs transition-all duration-150 hover:bg-slate-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-400"
+            >
+              {added
+                ? 'Added to cart'
+                : product.inStock
+                  ? 'Add to cart'
+                  : 'Sold out'}
+            </button>
+            <button
+              type="button"
+              onClick={onBuyNow}
+              disabled={!product.inStock || busy}
+              className="flex h-[44px] items-center justify-center rounded-[12px] border-0 bg-brass px-2 text-[14px] font-bold leading-[18px] text-white shadow-xs transition-all duration-150 hover:bg-brass-light hover:shadow-md active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
+            >
+              {product.inStock
+                ? `Buy at ${rupees(product.price * quantity)}`
+                : 'Sold out'}
+            </button>
           </div>
         </div>
       )}

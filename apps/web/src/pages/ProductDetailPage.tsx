@@ -107,7 +107,7 @@ export function ProductDetailPage({
     setBusy(true);
     try {
       await addCartItem(product.id, quantity);
-      navigate('/checkout');
+      navigate('/checkout', { state: { autoFocusFullName: true } });
     } catch {
       // Surfaced by the cart page; see the note in CatalogPage.
     } finally {

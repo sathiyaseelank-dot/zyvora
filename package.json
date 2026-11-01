@@ -21,7 +21,7 @@
     "seed": "npm run seed -w @zyvora/api"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=20 <25"
   },
   "type": "module",
   "overrides": {

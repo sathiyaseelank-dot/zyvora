@@ -40,6 +40,7 @@ vi.mock(import('../src/lib/api'), async (importOriginal) => {
       pagination: { total: 0, page: 1, limit: 12, totalPages: 0 },
     }),
     fetchProduct: vi.fn(),
+    fetchProductById: vi.fn(),
     searchProducts: vi.fn(),
     fetchOrders: vi.fn().mockResolvedValue({
       data: [],
@@ -142,6 +143,25 @@ describe('App Router Wiring (ZYV-1317)', () => {
       expect(
         screen.getByRole('heading', { name: /reset your password/i }),
       ).toBeInTheDocument();
+    });
+  });
+
+  it('redirects "/catalog/:id" to product detail page', async () => {
+    vi.mocked(api.fetchProductById).mockResolvedValue({
+      id: '018d0000-0000-4000-8000-000000000004',
+      name: 'Tiranga Flag',
+      price: 999,
+      category: 'car-flags',
+      description: 'Official Indian flag',
+      in_stock: true,
+      stock: 10,
+      image: '/tiranga.png',
+      images: ['/tiranga.png'],
+      details: {},
+    } as never);
+    renderAt('/catalog/018d0000-0000-4000-8000-000000000004');
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
     });
   });
 

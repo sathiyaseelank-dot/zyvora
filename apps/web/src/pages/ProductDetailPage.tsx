@@ -302,28 +302,77 @@ export function ProductDetailPage({
 
             {/* Reassurance Badges */}
             <div className="mt-10 grid grid-cols-3 gap-3 border-t border-slate-200/80 pt-6 text-center">
-              <div className="rounded-xl bg-slate-50 p-3">
-                <span className="text-lg">⚡</span>
-                <p className="mt-1 text-[11px] font-bold text-slate-800">
+              <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200/60 bg-slate-50/80 p-3 transition-colors hover:border-amber-300 hover:bg-amber-50/30">
+                <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-800">
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m12 14 4-4" />
+                    <path d="M3.34 19a10 10 0 1 1 17.32 0" />
+                  </svg>
+                </div>
+                <p className="text-[11px] font-bold text-slate-800 leading-tight">
                   120 km/h Tested
                 </p>
-                <p className="text-[10px] text-slate-500">
+                <p className="mt-0.5 text-[10px] text-slate-500 leading-tight">
                   Highway aerodynamic
                 </p>
               </div>
-              <div className="rounded-xl bg-slate-50 p-3">
-                <span className="text-lg">🧵</span>
-                <p className="mt-1 text-[11px] font-bold text-slate-800">
+
+              <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200/60 bg-slate-50/80 p-3 transition-colors hover:border-amber-300 hover:bg-amber-50/30">
+                <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-800">
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+                    <path d="m9 12 2 2 4-4" />
+                  </svg>
+                </div>
+                <p className="text-[11px] font-bold text-slate-800 leading-tight">
                   Triple-Stitched
                 </p>
-                <p className="text-[10px] text-slate-500">Fray-resistant hem</p>
+                <p className="mt-0.5 text-[10px] text-slate-500 leading-tight">
+                  Fray-resistant hem
+                </p>
               </div>
-              <div className="rounded-xl bg-slate-50 p-3">
-                <span className="text-lg">🚚</span>
-                <p className="mt-1 text-[11px] font-bold text-slate-800">
+
+              <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200/60 bg-slate-50/80 p-3 transition-colors hover:border-amber-300 hover:bg-amber-50/30">
+                <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-800">
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" />
+                    <path d="M15 18H9" />
+                    <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14v10Z" />
+                    <circle cx="17" cy="18.5" r="2.5" />
+                    <circle cx="7" cy="18.5" r="2.5" />
+                  </svg>
+                </div>
+                <p className="text-[11px] font-bold text-slate-800 leading-tight">
                   Express Delivery
                 </p>
-                <p className="text-[10px] text-slate-500">
+                <p className="mt-0.5 text-[10px] text-slate-500 leading-tight">
                   Fast dispatch in India
                 </p>
               </div>
@@ -341,12 +390,12 @@ export function ProductDetailPage({
           <div className="mx-auto grid max-w-md grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={onAdd}
+              onClick={added ? () => navigate('/cart') : onAdd}
               disabled={!product.inStock || busy}
               className="flex h-[44px] items-center justify-center rounded-[12px] border border-[#d6d6d6] bg-white px-2 text-[14px] font-bold leading-[18px] text-[#333333] shadow-xs transition-all duration-150 hover:bg-slate-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-400"
             >
               {added
-                ? 'Added to cart'
+                ? 'Go to cart'
                 : product.inStock
                   ? 'Add to cart'
                   : 'Sold out'}
@@ -355,7 +404,7 @@ export function ProductDetailPage({
               type="button"
               onClick={onBuyNow}
               disabled={!product.inStock || busy}
-              className="flex h-[44px] items-center justify-center rounded-[12px] border-0 bg-brass px-2 text-[14px] font-bold leading-[18px] text-white shadow-xs transition-all duration-150 hover:bg-brass-light hover:shadow-md active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
+              className="flex h-[44px] items-center justify-center rounded-[12px] border-0 bg-gradient-to-r from-[#ffe51f] to-[#ffcd03] px-2 text-[14px] font-bold leading-[18px] text-[#333333] shadow-xs transition-all duration-150 hover:brightness-95 active:scale-[0.98] disabled:cursor-not-allowed disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-400"
             >
               {product.inStock
                 ? `Buy at ${rupees(product.price * quantity)}`

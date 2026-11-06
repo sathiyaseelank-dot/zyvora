@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useParams } from 'react-router-dom';
 
+import { BottomNav } from './components/BottomNav';
 import { Footer } from './components/Footer';
 import { Header } from './components/Header';
 import {
@@ -27,6 +28,11 @@ import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderConfirmationPage } from './pages/OrderConfirmationPage';
 
+function CatalogProductRedirect() {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={`/products/${id}`} replace />;
+}
+
 /**
  * Route table.
  *
@@ -50,6 +56,7 @@ export function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/catalog" element={<CatalogPage />} />
+          <Route path="/catalog/:id" element={<CatalogProductRedirect />} />
           {/*
             ZYV-106. The catalogue linked here before this route existed, so
             every product card was a dead link to the 404 page.
@@ -157,6 +164,7 @@ export function App() {
       </main>
 
       <Footer />
+      <BottomNav />
     </div>
   );
 }

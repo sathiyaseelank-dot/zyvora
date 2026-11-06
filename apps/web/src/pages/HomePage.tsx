@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { ProductSummary } from '@zyvora/types';
 
@@ -25,20 +25,25 @@ function ProductStrip({
 }) {
   const [products, setProducts] = useState<ProductSummary[] | null>(null);
   const [failed, setFailed] = useState(false);
+  const onLoadedRef = useRef(onProductsLoaded);
+
+  useEffect(() => {
+    onLoadedRef.current = onProductsLoaded;
+  });
 
   useEffect(() => {
     const controller = new AbortController();
     fetchProducts({ pageSize: 6 }, controller.signal)
       .then((r) => {
         setProducts(r.data);
-        onProductsLoaded?.(r.data);
+        onLoadedRef.current?.(r.data);
       })
       .catch((err) => {
         if (err instanceof DOMException && err.name === 'AbortError') return;
         setFailed(true);
       });
     return () => controller.abort();
-  }, [onProductsLoaded]);
+  }, []);
 
   if (failed) {
     return (
@@ -183,13 +188,13 @@ export function HomePage() {
     return () => controller.abort();
   }, []);
 
-  function handleProductsLoaded(items: ProductSummary[]) {
+  const handleProductsLoaded = useCallback((items: ProductSummary[]) => {
     const genuine = items.filter(
       (p) =>
         p.rating && typeof p.rating.count === 'number' && p.rating.count > 0,
     );
     setRatedProducts(genuine);
-  }
+  }, []);
 
   return (
     <>

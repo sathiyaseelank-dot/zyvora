@@ -222,7 +222,7 @@ describe('CheckoutPage (ZYV-99, ZYV-61, ZYV-66)', () => {
     expect(screen.getByText('ZYVORA Tricolor Car Flag')).toBeInTheDocument();
 
     const proceedPayBtn = screen.getByRole('button', {
-      name: /proceed to payment/i,
+      name: /place order|proceed to payment/i,
     });
     await user.click(proceedPayBtn);
 

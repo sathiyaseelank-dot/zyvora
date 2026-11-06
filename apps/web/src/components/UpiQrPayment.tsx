@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
-import QRCode from 'qrcode';
+
+import { generateQrSvg } from '../lib/qr';
 
 interface UpiQrPaymentProps {
   amount: number;
@@ -44,30 +45,16 @@ export function UpiQrPayment({
     return `upi://pay?${params.toString()}`;
   }, [upiId, payeeName, amount, orderReference]);
 
-  const [qrSvg, setQrSvg] = useState<string>('');
-
-  useEffect(() => {
-    let active = true;
-    QRCode.toString(
-      upiUri,
-      {
-        type: 'svg',
+  const qrSvg = useMemo(() => {
+    try {
+      return generateQrSvg(upiUri, {
         margin: 2,
-        errorCorrectionLevel: 'M',
-        color: {
-          dark: '#0f172a',
-          light: '#ffffff',
-        },
-      },
-      (err, svgString) => {
-        if (!err && active && svgString) {
-          setQrSvg(svgString);
-        }
-      },
-    );
-    return () => {
-      active = false;
-    };
+        darkColor: '#0f172a',
+        lightColor: '#ffffff',
+      });
+    } catch {
+      return '';
+    }
   }, [upiUri]);
 
   // Countdown timer

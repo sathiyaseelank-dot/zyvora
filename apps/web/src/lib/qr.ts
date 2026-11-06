@@ -345,3 +345,31 @@ export function generateQrMatrix(text: string): boolean[][] {
 
   return matrix.map((row) => row.map((cell) => cell ?? false));
 }
+
+/**
+ * Generate a standalone SVG string representation of a QR code.
+ */
+export function generateQrSvg(
+  text: string,
+  options?: {
+    margin?: number;
+    darkColor?: string;
+    lightColor?: string;
+  },
+): string {
+  const margin = options?.margin ?? 2;
+  const darkColor = options?.darkColor ?? '#0f172a';
+  const lightColor = options?.lightColor ?? '#ffffff';
+  const matrix = generateQrMatrix(text);
+  const size = matrix.length;
+  const total = size + margin * 2;
+  let rects = '';
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if (matrix[r][c]) {
+        rects += `<rect x="${c + margin}" y="${r + margin}" width="1" height="1" fill="${darkColor}"/>`;
+      }
+    }
+  }
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${total} ${total}" shape-rendering="crispEdges"><rect width="${total}" height="${total}" fill="${lightColor}"/>${rects}</svg>`;
+}

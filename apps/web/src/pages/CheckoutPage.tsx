@@ -13,6 +13,7 @@ import {
   type CheckoutValidation,
 } from '../lib/api';
 import { Button } from '../components/Button';
+import { UpiQrPayment } from '../components/UpiQrPayment';
 
 function rupees(value: number): string {
   return new Intl.NumberFormat('en-IN', {
@@ -60,6 +61,11 @@ export function CheckoutPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+  const [paymentMethod, setPaymentMethod] = useState<'upi_qr' | 'cod'>(
+    'upi_qr',
+  );
+  const [utr, setUtr] = useState('');
 
   // Address form fields
   const [fullName, setFullName] = useState('');
@@ -73,6 +79,15 @@ export function CheckoutPage() {
   const [pinCode, setPinCode] = useState('');
   const [deliveryInstructions, setDeliveryInstructions] = useState('');
   const [saveToAccount, setSaveToAccount] = useState(true);
+
+  const clearFieldError = (field: string) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   // Session ID for idempotency (ZYV-73)
   const [sessionId] = useState<string>(() => {
@@ -208,47 +223,80 @@ export function CheckoutPage() {
   const handleProceedToReview = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setFieldErrors({});
     setSubmitting(true);
 
     try {
       let finalAddressId = selectedAddressId;
 
-      // If user is logged in and entered a new address, save it
-      if (user && !selectedAddressId) {
-        // Validate all mandatory fields
-        if (!fullName.trim()) throw new Error('Full name is required');
-        if (!mobile.trim()) throw new Error('Mobile number is required');
-        if (!email.trim()) throw new Error('Email address is required');
-        if (!houseNumberAndStreet.trim())
-          throw new Error('Flat / House No. & Street is required');
-        if (!area.trim()) throw new Error('Area / Locality is required');
-        if (!city.trim()) throw new Error('City is required');
-        if (!state.trim()) throw new Error('State is required');
-        if (!pinCode.trim()) throw new Error('PIN Code is required');
-        if (!/^[6-9]\d{9}$/.test(mobile.trim())) {
-          throw new Error('Please enter a valid 10-digit Indian mobile number');
+      // Validate address input if entering a new address
+      if (!selectedAddressId) {
+        const cleanFullName = fullName.trim();
+        const cleanMobile = mobile
+          .replace(/[\s\-()]/g, '')
+          .replace(/^(?:\+91|0)/, '');
+        const cleanEmail = email.trim().toLowerCase();
+        const cleanStreet = houseNumberAndStreet.trim();
+        const cleanArea = area.trim();
+        const cleanCity = city.trim();
+        const cleanState = state.trim();
+        const cleanPin = pinCode.replace(/\s+/g, '');
+        const cleanLandmark = landmark.trim() || null;
+        const cleanInstructions = deliveryInstructions.trim() || null;
+
+        if (!cleanFullName) throw new Error('Full name is required');
+        if (cleanFullName.length < 2)
+          throw new Error('Full name must be at least 2 characters');
+        if (!cleanMobile) throw new Error('Mobile number is required');
+        if (!/^[6-9]\d{9}$/.test(cleanMobile)) {
+          throw new Error(
+            'Please enter a valid 10-digit Indian mobile number (e.g. 9876543210)',
+          );
         }
-        if (!/^\d{6}$/.test(pinCode.trim())) {
+        if (!cleanEmail) throw new Error('Email address is required');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+          throw new Error('Please enter a valid email address');
+        }
+        if (!cleanStreet)
+          throw new Error('Flat / House No. & Street is required');
+        if (cleanStreet.length < 3)
+          throw new Error(
+            'Flat / House No. & Street must be at least 3 characters',
+          );
+        if (!cleanArea) throw new Error('Area / Locality is required');
+        if (cleanArea.length < 2)
+          throw new Error('Area / Locality must be at least 2 characters');
+        if (!cleanCity) throw new Error('City is required');
+        if (cleanCity.length < 2)
+          throw new Error('City must be at least 2 characters');
+        if (!cleanState) throw new Error('State is required');
+        if (cleanState.length < 2)
+          throw new Error('State must be at least 2 characters');
+        if (!cleanPin) throw new Error('PIN Code is required');
+        if (!/^\d{6}$/.test(cleanPin)) {
           throw new Error('Please enter a valid 6-digit PIN code');
         }
 
-        const newAddr = await createAddress({
-          fullName: fullName.trim(),
-          mobile: mobile.trim(),
-          email: email.trim(),
-          houseNumberAndStreet: houseNumberAndStreet.trim(),
-          area: area.trim(),
-          landmark: landmark.trim() || null,
-          city: city.trim(),
-          state: state.trim(),
-          pinCode: pinCode.trim(),
-          country: 'India',
-          deliveryInstructions: deliveryInstructions.trim() || null,
-          isDefault: saveToAccount && savedAddresses.length === 0,
-        });
-        finalAddressId = newAddr.id;
-        setSelectedAddressId(newAddr.id);
-        setSavedAddresses((prev) => [...prev, newAddr]);
+        // Save address to server if user is authenticated
+        if (user) {
+          const newAddr = await createAddress({
+            fullName: cleanFullName,
+            mobile: cleanMobile,
+            email: cleanEmail,
+            houseNumberAndStreet: cleanStreet,
+            area: cleanArea,
+            landmark: cleanLandmark,
+            city: cleanCity,
+            state: cleanState,
+            pinCode: cleanPin,
+            country: 'India',
+            deliveryInstructions: cleanInstructions,
+            isDefault: saveToAccount && savedAddresses.length === 0,
+          });
+          finalAddressId = newAddr.id;
+          setSelectedAddressId(newAddr.id);
+          setSavedAddresses((prev) => [...prev, newAddr]);
+        }
       }
 
       // Revalidate basket with server (ZYV-59)
@@ -265,7 +313,18 @@ export function CheckoutPage() {
 
       setStep(2);
     } catch (err: any) {
-      setError(err.message ?? 'Failed to validate address');
+      if (err.fieldErrors && Object.keys(err.fieldErrors).length > 0) {
+        setFieldErrors(err.fieldErrors);
+        const firstKey = Object.keys(err.fieldErrors)[0];
+        const firstMsg = err.fieldErrors[firstKey]?.[0];
+        setError(
+          firstMsg ??
+            err.message ??
+            'Please check the highlighted address fields',
+        );
+      } else {
+        setError(err.message ?? 'Failed to validate address');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -332,7 +391,7 @@ export function CheckoutPage() {
   const totals = validation?.totals ?? cart?.totals;
 
   return (
-    <div className="mx-auto max-w-[1000px] px-5 py-12 sm:py-16">
+    <div className="mx-auto max-w-[1000px] px-5 pt-8 pb-32 sm:py-16">
       <div className="mb-10 text-center">
         <h1 className="font-display text-[32px] sm:text-[40px] text-ink">
           Complete Your Order
@@ -482,9 +541,21 @@ export function CheckoutPage() {
                         required
                         ref={fullNameRef}
                         value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        className="w-full border border-rule rounded px-3 py-2 text-sm focus:border-brass outline-none"
+                        onChange={(e) => {
+                          setFullName(e.target.value);
+                          clearFieldError('fullName');
+                        }}
+                        className={`w-full border rounded px-3 py-2 text-sm outline-none transition-colors ${
+                          fieldErrors.fullName
+                            ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
+                            : 'border-rule focus:border-brass'
+                        }`}
                       />
+                      {fieldErrors.fullName && (
+                        <p className="mt-1 text-xs text-rose-600 font-medium">
+                          {fieldErrors.fullName[0]}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-xs uppercase tracking-wider text-ink-muted mb-1">
@@ -495,9 +566,21 @@ export function CheckoutPage() {
                         required
                         placeholder="10-digit number"
                         value={mobile}
-                        onChange={(e) => setMobile(e.target.value)}
-                        className="w-full border border-rule rounded px-3 py-2 text-sm focus:border-brass outline-none"
+                        onChange={(e) => {
+                          setMobile(e.target.value);
+                          clearFieldError('mobile');
+                        }}
+                        className={`w-full border rounded px-3 py-2 text-sm outline-none transition-colors ${
+                          fieldErrors.mobile
+                            ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
+                            : 'border-rule focus:border-brass'
+                        }`}
                       />
+                      {fieldErrors.mobile && (
+                        <p className="mt-1 text-xs text-rose-600 font-medium">
+                          {fieldErrors.mobile[0]}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -509,9 +592,21 @@ export function CheckoutPage() {
                       type="email"
                       required
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full border border-rule rounded px-3 py-2 text-sm focus:border-brass outline-none"
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        clearFieldError('email');
+                      }}
+                      className={`w-full border rounded px-3 py-2 text-sm outline-none transition-colors ${
+                        fieldErrors.email
+                          ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
+                          : 'border-rule focus:border-brass'
+                      }`}
                     />
+                    {fieldErrors.email && (
+                      <p className="mt-1 text-xs text-rose-600 font-medium">
+                        {fieldErrors.email[0]}
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -522,9 +617,21 @@ export function CheckoutPage() {
                       type="text"
                       required
                       value={houseNumberAndStreet}
-                      onChange={(e) => setHouseNumberAndStreet(e.target.value)}
-                      className="w-full border border-rule rounded px-3 py-2 text-sm focus:border-brass outline-none"
+                      onChange={(e) => {
+                        setHouseNumberAndStreet(e.target.value);
+                        clearFieldError('houseNumberAndStreet');
+                      }}
+                      className={`w-full border rounded px-3 py-2 text-sm outline-none transition-colors ${
+                        fieldErrors.houseNumberAndStreet
+                          ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
+                          : 'border-rule focus:border-brass'
+                      }`}
                     />
+                    {fieldErrors.houseNumberAndStreet && (
+                      <p className="mt-1 text-xs text-rose-600 font-medium">
+                        {fieldErrors.houseNumberAndStreet[0]}
+                      </p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -536,9 +643,21 @@ export function CheckoutPage() {
                         type="text"
                         required
                         value={area}
-                        onChange={(e) => setArea(e.target.value)}
-                        className="w-full border border-rule rounded px-3 py-2 text-sm focus:border-brass outline-none"
+                        onChange={(e) => {
+                          setArea(e.target.value);
+                          clearFieldError('area');
+                        }}
+                        className={`w-full border rounded px-3 py-2 text-sm outline-none transition-colors ${
+                          fieldErrors.area
+                            ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
+                            : 'border-rule focus:border-brass'
+                        }`}
                       />
+                      {fieldErrors.area && (
+                        <p className="mt-1 text-xs text-rose-600 font-medium">
+                          {fieldErrors.area[0]}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-xs uppercase tracking-wider text-ink-muted mb-1">
@@ -547,7 +666,10 @@ export function CheckoutPage() {
                       <input
                         type="text"
                         value={landmark}
-                        onChange={(e) => setLandmark(e.target.value)}
+                        onChange={(e) => {
+                          setLandmark(e.target.value);
+                          clearFieldError('landmark');
+                        }}
                         className="w-full border border-rule rounded px-3 py-2 text-sm focus:border-brass outline-none"
                       />
                     </div>
@@ -562,9 +684,21 @@ export function CheckoutPage() {
                         type="text"
                         required
                         value={city}
-                        onChange={(e) => setCity(e.target.value)}
-                        className="w-full border border-rule rounded px-3 py-2 text-sm focus:border-brass outline-none"
+                        onChange={(e) => {
+                          setCity(e.target.value);
+                          clearFieldError('city');
+                        }}
+                        className={`w-full border rounded px-3 py-2 text-sm outline-none transition-colors ${
+                          fieldErrors.city
+                            ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
+                            : 'border-rule focus:border-brass'
+                        }`}
                       />
+                      {fieldErrors.city && (
+                        <p className="mt-1 text-xs text-rose-600 font-medium">
+                          {fieldErrors.city[0]}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-xs uppercase tracking-wider text-ink-muted mb-1">
@@ -574,9 +708,21 @@ export function CheckoutPage() {
                         type="text"
                         required
                         value={state}
-                        onChange={(e) => setState(e.target.value)}
-                        className="w-full border border-rule rounded px-3 py-2 text-sm focus:border-brass outline-none"
+                        onChange={(e) => {
+                          setState(e.target.value);
+                          clearFieldError('state');
+                        }}
+                        className={`w-full border rounded px-3 py-2 text-sm outline-none transition-colors ${
+                          fieldErrors.state
+                            ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
+                            : 'border-rule focus:border-brass'
+                        }`}
                       />
+                      {fieldErrors.state && (
+                        <p className="mt-1 text-xs text-rose-600 font-medium">
+                          {fieldErrors.state[0]}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-xs uppercase tracking-wider text-ink-muted mb-1">
@@ -588,9 +734,21 @@ export function CheckoutPage() {
                         maxLength={6}
                         placeholder="6 digits"
                         value={pinCode}
-                        onChange={(e) => setPinCode(e.target.value)}
-                        className="w-full border border-rule rounded px-3 py-2 text-sm focus:border-brass outline-none"
+                        onChange={(e) => {
+                          setPinCode(e.target.value);
+                          clearFieldError('pinCode');
+                        }}
+                        className={`w-full border rounded px-3 py-2 text-sm outline-none transition-colors ${
+                          fieldErrors.pinCode
+                            ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
+                            : 'border-rule focus:border-brass'
+                        }`}
                       />
+                      {fieldErrors.pinCode && (
+                        <p className="mt-1 text-xs text-rose-600 font-medium">
+                          {fieldErrors.pinCode[0]}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -601,7 +759,10 @@ export function CheckoutPage() {
                     <textarea
                       rows={2}
                       value={deliveryInstructions}
-                      onChange={(e) => setDeliveryInstructions(e.target.value)}
+                      onChange={(e) => {
+                        setDeliveryInstructions(e.target.value);
+                        clearFieldError('deliveryInstructions');
+                      }}
                       className="w-full border border-rule rounded px-3 py-2 text-sm focus:border-brass outline-none"
                     />
                   </div>
@@ -616,23 +777,52 @@ export function CheckoutPage() {
                       Save this address to my account
                     </label>
                   )}
+
+                  {error && (
+                    <div
+                      role="alert"
+                      className="p-3.5 rounded-xl bg-rose-50 border border-rose-200/80 text-rose-700 text-sm flex items-start gap-2.5 shadow-xs"
+                    >
+                      <span
+                        className="shrink-0 text-rose-500 font-bold"
+                        aria-hidden="true"
+                      >
+                        ⚠️
+                      </span>
+                      <span>{error}</span>
+                    </div>
+                  )}
                 </form>
               )}
 
-              <div className="sticky bottom-0 -mx-4 bg-paper px-4 py-3 sm:static sm:mx-0 sm:bg-transparent sm:px-0 sm:py-0">
-                <Button
-                  type="submit"
-                  form={!selectedAddressId ? 'addressForm' : undefined}
-                  onClick={
-                    selectedAddressId ? handleProceedToReview : undefined
-                  }
-                  variant="brass"
-                  size="lg"
-                  className="w-full"
-                  disabled={submitting}
-                >
-                  {submitting ? 'Validating...' : 'Continue to Order Review'}
-                </Button>
+              {/* Clearance spacer on mobile so fixed bottom dock never overlaps form inputs */}
+              <div className="h-24 sm:hidden" aria-hidden="true" />
+
+              {/* Reshaped Bottom Bar (Flipkart UX on mobile, standard layout on desktop) */}
+              <div className="fixed bottom-0 inset-x-0 z-40 rounded-t-[16px] border-t border-slate-200/90 bg-white px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.09)] sm:static sm:inset-auto sm:z-auto sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
+                <div className="mx-auto flex max-w-md items-center justify-between gap-3 sm:max-w-none sm:block flex-nowrap">
+                  <div className="sm:hidden min-w-0 shrink-0">
+                    <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                      Total Payable
+                    </p>
+                    <p className="text-[16px] font-bold text-slate-900 leading-tight whitespace-nowrap">
+                      {rupees(totals?.total ?? 0)}
+                    </p>
+                  </div>
+                  <Button
+                    type="submit"
+                    form={!selectedAddressId ? 'addressForm' : undefined}
+                    onClick={
+                      selectedAddressId ? handleProceedToReview : undefined
+                    }
+                    variant="brass"
+                    size="sm"
+                    className="h-10 sm:h-12 w-auto shrink-0 sm:w-full font-bold shadow-xs text-xs sm:text-sm whitespace-nowrap px-4 sm:px-6"
+                    disabled={submitting}
+                  >
+                    {submitting ? 'Validating...' : 'Continue to Order Review'}
+                  </Button>
+                </div>
               </div>
             </div>
           )}
@@ -699,43 +889,60 @@ export function CheckoutPage() {
               </div>
 
               {/* Coupon Code Input */}
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
                 <input
                   type="text"
                   placeholder="Coupon Code"
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                  className="flex-1 border border-rule rounded px-3 py-2 text-sm uppercase focus:border-brass outline-none"
+                  className="flex-1 min-w-0 border border-rule rounded-xl px-3.5 py-2.5 text-sm uppercase focus:border-brass outline-none"
                 />
                 <Button
                   type="button"
                   onClick={handleApplyCoupon}
                   variant="outline"
                   size="md"
+                  className="shrink-0"
                 >
                   Apply
                 </Button>
               </div>
 
-              <div className="flex gap-4">
-                <Button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  variant="outline"
-                  size="lg"
-                  className="w-1/3"
-                >
-                  Back
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => setStep(3)}
-                  variant="brass"
-                  size="lg"
-                  className="flex-1"
-                >
-                  Proceed to Payment
-                </Button>
+              {/* Clearance spacer on mobile so fixed bottom dock never overlaps coupon / action elements */}
+              <div className="h-24 sm:hidden" aria-hidden="true" />
+
+              {/* Reshaped Bottom Bar (Flipkart UX on mobile, standard layout on desktop) */}
+              <div className="fixed bottom-0 inset-x-0 z-40 rounded-t-[16px] border-t border-slate-200/90 bg-white px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.09)] sm:static sm:inset-auto sm:z-auto sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
+                <div className="mx-auto flex max-w-md items-center justify-between gap-3 sm:max-w-none sm:flex sm:gap-4 flex-nowrap">
+                  <div className="sm:hidden min-w-0 shrink-0">
+                    <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                      Total Payable
+                    </p>
+                    <p className="text-[16px] font-bold text-slate-900 leading-tight whitespace-nowrap">
+                      {rupees(totals?.total ?? 0)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-nowrap shrink-0 sm:w-full sm:shrink">
+                    <Button
+                      type="button"
+                      onClick={() => setStep(1)}
+                      variant="outline"
+                      size="sm"
+                      className="h-10 sm:h-12 px-3 sm:px-6 sm:w-1/3 text-xs sm:text-sm whitespace-nowrap shrink-0"
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => setStep(3)}
+                      variant="brass"
+                      size="sm"
+                      className="h-10 sm:h-12 px-4 sm:px-6 flex-1 sm:flex-1 font-bold shadow-xs text-xs sm:text-sm whitespace-nowrap shrink-0"
+                    >
+                      Place Order
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -743,59 +950,77 @@ export function CheckoutPage() {
           {/* STEP 3: PAYMENT */}
           {step === 3 && (
             <div className="space-y-8">
-              <h2 className="font-display text-2xl text-ink">Payment Method</h2>
-
-              <div className="p-6 border border-brass rounded bg-amber-50/20 space-y-3">
-                <div className="flex items-center gap-3">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    defaultChecked
-                    className="accent-brass"
-                  />
-                  <span className="font-semibold text-sm">
-                    Standard Checkout (Order Reservation)
-                  </span>
-                </div>
-                <p className="text-xs text-ink-muted leading-relaxed pl-6">
-                  Online Razorpay gateway integration is currently in scheduled
-                  maintenance. Your order will be reserved and confirmed in
-                  pending status for fulfilment.
-                </p>
+              <div className="flex justify-between items-center">
+                <h2 className="font-display text-2xl text-ink">
+                  Payment Method
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  className="text-xs text-brass hover:underline uppercase tracking-wider"
+                >
+                  Review Order
+                </button>
               </div>
 
+              <UpiQrPayment
+                amount={totals?.total ?? 0}
+                orderReference={`ZYVORA-${sessionId.slice(0, 8)}`}
+                onMethodChange={setPaymentMethod}
+                utr={utr}
+                onUtrChange={setUtr}
+              />
+
               {!user && (
-                <div className="p-4 rounded bg-surface-sunken text-xs text-ink-muted leading-relaxed">
+                <div className="p-4 rounded-xl bg-surface-sunken text-xs text-ink-muted leading-relaxed">
                   Notice: Clicking Pay Now will securely direct you to sign in
                   or create an account. Your cart, address, and checkout
                   progress will be preserved.
                 </div>
               )}
 
-              <div className="flex gap-4">
-                <Button
-                  type="button"
-                  onClick={() => setStep(2)}
-                  variant="outline"
-                  size="lg"
-                  className="w-1/3"
-                >
-                  Back
-                </Button>
-                <Button
-                  type="button"
-                  onClick={handlePayNow}
-                  disabled={submitting}
-                  variant="brass"
-                  size="lg"
-                  className="flex-1"
-                >
-                  {submitting
-                    ? 'Processing...'
-                    : user
-                      ? `Pay Now • ${rupees(totals?.total ?? 0)}`
-                      : 'Sign in to Pay Now'}
-                </Button>
+              {/* Clearance spacer on mobile so fixed bottom dock never overlaps form inputs */}
+              <div className="h-24 sm:hidden" aria-hidden="true" />
+
+              {/* Reshaped Bottom Bar (Flipkart UX on mobile, standard layout on desktop) */}
+              <div className="fixed bottom-0 inset-x-0 z-40 rounded-t-[16px] border-t border-slate-200/90 bg-white px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.09)] sm:static sm:inset-auto sm:z-auto sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
+                <div className="mx-auto flex max-w-md items-center justify-between gap-3 sm:max-w-none sm:flex sm:gap-4 flex-nowrap">
+                  <div className="sm:hidden min-w-0 shrink-0">
+                    <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                      Total Payable
+                    </p>
+                    <p className="text-[16px] font-bold text-slate-900 leading-tight whitespace-nowrap">
+                      {rupees(totals?.total ?? 0)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-nowrap shrink-0 sm:w-full sm:shrink">
+                    <Button
+                      type="button"
+                      onClick={() => setStep(2)}
+                      variant="outline"
+                      size="sm"
+                      className="h-10 sm:h-12 px-3 sm:px-6 sm:w-1/3 text-xs sm:text-sm whitespace-nowrap shrink-0"
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={handlePayNow}
+                      disabled={submitting}
+                      variant="brass"
+                      size="sm"
+                      className="h-10 sm:h-12 px-4 sm:px-6 flex-1 sm:flex-1 font-bold shadow-xs text-xs sm:text-sm whitespace-nowrap shrink-0"
+                    >
+                      {submitting
+                        ? 'Processing...'
+                        : user
+                          ? paymentMethod === 'upi_qr'
+                            ? `Pay Now via UPI • ${rupees(totals?.total ?? 0)}`
+                            : `Pay Now • ${rupees(totals?.total ?? 0)}`
+                          : 'Sign in to Pay Now'}
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           )}

@@ -164,7 +164,7 @@ export function CartPage() {
                 className={`flex gap-5 py-6 rounded-2xl bg-white border border-slate-200/70 p-4 mb-4 shadow-xs ${busy ? 'opacity-60' : ''}`}
               >
                 <Link
-                  to={`/catalog/${line.productId}`}
+                  to={`/products/${line.productId}`}
                   className="w-[96px] shrink-0 overflow-hidden rounded-xl bg-slate-100"
                 >
                   <ProductImage
@@ -177,7 +177,9 @@ export function CartPage() {
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
                   <div className="flex items-start justify-between gap-4">
                     <h2 className="font-display text-[17px] font-semibold text-slate-900 hover:text-amber-700 transition-colors">
-                      <Link to={`/catalog/${line.productId}`}>{line.name}</Link>
+                      <Link to={`/products/${line.productId}`}>
+                        {line.name}
+                      </Link>
                     </h2>
                     <p className="shrink-0 text-[16px] font-bold text-slate-900 whitespace-nowrap">
                       {rupees(line.lineTotal)}

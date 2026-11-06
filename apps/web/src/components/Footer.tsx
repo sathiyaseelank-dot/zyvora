@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 /**
  * Site footer (ZYV-100, ZYV-111, ZYV-114, ZYV-115, ZYV-117, ZYV-118, ZYV-119).
@@ -38,8 +38,18 @@ const COLUMNS = [
 ];
 
 export function Footer() {
+  const location = useLocation();
+
+  // Hide footer during ordering and confirmation to provide a distraction-free experience
+  if (
+    location.pathname === '/checkout' ||
+    location.pathname.startsWith('/order-confirmation')
+  ) {
+    return null;
+  }
+
   return (
-    <footer className="mt-24 border-t border-rule bg-paper">
+    <footer className="mt-24 border-t border-rule bg-paper pb-16 md:pb-0">
       <div className="mx-auto max-w-[1400px] px-5 py-14 sm:px-8">
         <div className="flex flex-wrap justify-between gap-12 sm:gap-16">
           {COLUMNS.map((column) => (
